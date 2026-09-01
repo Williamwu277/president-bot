@@ -1,12 +1,20 @@
-from enum import Enum, auto
-from random import shuffle, randint
-from typing import Optional
-from dataclasses import dataclass, field
-from collections import Counter, defaultdict, deque
+"""
+Core models and game engine for President.
+"""
+
 from abc import ABC, abstractmethod
+from collections import Counter, defaultdict, deque
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from random import shuffle
+from typing import Optional
 
 
 class Rank(Enum):
+    """
+    Card ranks ordered from lowest to highest.
+    """
+
     THREE = 3
     FOUR = auto()
     FIVE = auto()
@@ -32,6 +40,10 @@ class Rank(Enum):
 
 
 class Suit(Enum):
+    """
+    The four standard card suits.
+    """
+
     DIAMONDS = "♢"
     CLUBS = "♣"
     HEARTS = "♡"
@@ -42,6 +54,10 @@ class Suit(Enum):
 
 
 class MoveType(Enum):
+    """
+    Valid categories of plays.
+    """
+
     SINGLE = auto()
     DOUBLE = auto()
     TRIPLE = auto()
@@ -52,6 +68,10 @@ class MoveType(Enum):
 
 @dataclass(frozen=True)
 class Card:
+    """
+    An immutable playing card.
+    """
+
     rank: Rank
     suit: Suit
 
@@ -64,6 +84,10 @@ class Card:
 
 @dataclass(frozen=True)
 class Move:
+    """
+    An immutable, validated collection of cards played together.
+    """
+
     cards: tuple[Card, ...]
     move_type: MoveType = field(init=False)
 
@@ -100,6 +124,9 @@ class Move:
     def __repr__(self) -> str:
         return f"({' '.join(map(str, self.cards))})"
 
+    def __len__(self) -> int:
+        return len(self.cards)
+
     def beats(self, other: "Move") -> bool:
         if self.move_type is not other.move_type:
             # One must be a bomb
@@ -128,6 +155,9 @@ class Move:
 
 
 class Hand:
+    """
+    A player's mutable collection of cards.
+    """
 
     def __init__(self, cards: list[Card]):
         self.cards: list[Card] = sorted(cards, key=lambda card: card.rank.value)
@@ -189,14 +219,23 @@ PlayerId = int
 
 @dataclass(frozen=True)
 class TurnRecord:
+    """
+    A record of a turn made by one player.
+    """
+
     player_id: PlayerId
     move: Move | None
 
 
 @dataclass(frozen=True)
 class PlayerView:
+    """
+    An immutable snapshot provided to a player for one turn.
+    """
+
     player_id: PlayerId
     hand: tuple[Card, ...]
+    cards_remaining: tuple[int, ...]
     current_move: Move | None
     current_trick: tuple[TurnRecord, ...]
     trick_history: tuple[tuple[TurnRecord, ...], ...]
@@ -204,23 +243,35 @@ class PlayerView:
 
 
 class Player(ABC):
+    """
+    Base class for human, AI, and other player strategies.
+    """
 
     def __init__(self, name: str):
         self.name = name
 
     @abstractmethod
     def make_move(self, view: PlayerView) -> Move | None:
+        """
+        Return a legal move, or None to pass.
+        """
+
         pass
 
 
 @dataclass
 class PlayerState:
+    """Mutable engine state associated with one player."""
+
     player_id: PlayerId
     controller: Player
     hand: Hand
 
 
 class President:
+    """
+    Run a game of President and coordinate player turns.
+    """
 
     def __init__(
         self,
@@ -253,11 +304,12 @@ class President:
         for player_id, controller in enumerate(players):
             hand = Hand(cards[player_id * cards_per_player : (player_id + 1) * cards_per_player])
             self.players[player_id] = PlayerState(player_id, controller, hand)
-            # print(f"{controller.name} hand: {hand}")
-
-        # print(f"Starting new game with {player_count} players, each with {cards_per_player} cards")
 
     def next_turn(self) -> TurnRecord:
+        """
+        Simulate one turn.
+        """
+
         player_id = self.turn_order[0]
         player = self.players[player_id]
         possible_moves = tuple(player.hand.get_possible_moves(self.current_move))
@@ -265,13 +317,16 @@ class President:
         view = PlayerView(
             player_id=player_id,
             hand=tuple(player.hand.cards),
+            cards_remaining=tuple(
+                len(self.players[current_player_id].hand.cards)
+                for current_player_id in range(len(self.players))
+            ),
             current_move=self.current_move,
             current_trick=tuple(self.current_trick),
             trick_history=tuple(self.trick_history),
             possible_moves=possible_moves
         )
 
-        # print(f"{player.controller.name}'s turn")
         move = player.controller.make_move(view)
 
         # Move validation
@@ -287,13 +342,11 @@ class President:
         else:
             raise ValueError("Invalid Move Played")
 
-        # print(move if move is not None else "Pass")
         turn_record = TurnRecord(player_id, move)
         self.current_trick.append(turn_record)
 
         # Check for winner
         if not player.hand.cards:
-            # print(f"{player.controller.name} wins!")
             self.standings.append(player_id)
             self.turn_order.popleft()
         else:
@@ -311,33 +364,26 @@ class President:
             self.current_move = None
             self.last_player_to_play = None
             self.passed_players.clear()
-            # print("All players have passed. Starting new trick")
 
         return turn_record
 
     def run(self) -> list[str]:
+        """
+        Play until the game ends and return standings.
+        """
+
         while len(self.turn_order) > 1:
             self.next_turn()
 
         self.standings.append(self.turn_order.popleft())
-
-        # print("Player standings:")
-        #for place, player_id in enumerate(self.standings, start=1):
-            # print(f"{place}: {self.players[player_id].controller.name}")
-
         return [self.players[player_id].controller.name for player_id in self.standings]
 
 
-class RandomPlayer(Player):
-
-    def make_move(self, view: PlayerView) -> Move | None:
-        if not view.possible_moves:
-            return None
-        move_index = randint(0, len(view.possible_moves) - 1)
-        return view.possible_moves[move_index]
-
-
 def get_full_deck(shuffled: bool = False) -> list[Card]:
+    """
+    Return one standard 52-card deck without Jokers.
+    """
+
     deck = []
 
     for rank in Rank:
@@ -348,4 +394,3 @@ def get_full_deck(shuffled: bool = False) -> list[Card]:
         shuffle(deck)
 
     return deck
-
