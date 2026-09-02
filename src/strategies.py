@@ -59,4 +59,6 @@ class HumanPlayer(Player):
         chosen_move = int(input("Choose your move id (0 to pass): "))
         if chosen_move == 0:
             return None
+        elif chosen_move > len(view.possible_moves) or chosen_move < 0:
+            return self.make_move(view)
         return view.possible_moves[chosen_move - 1]
