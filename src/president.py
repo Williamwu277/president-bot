@@ -10,6 +10,9 @@ from random import shuffle
 from typing import Optional
 
 
+FULL_DECK_SIZE = 52
+
+
 class Rank(Enum):
     """
     Card ranks ordered from lowest to highest.
@@ -66,6 +69,13 @@ class MoveType(Enum):
     BOMB = auto()
 
 
+MoveKey = tuple[Rank, ...]
+HandKey = tuple[int, ...]
+
+
+CARD_SORT_ORDER = lambda card: card.rank.value
+
+
 @dataclass(frozen=True)
 class Card:
     """
@@ -92,7 +102,7 @@ class Move:
     move_type: MoveType = field(init=False)
 
     def __post_init__(self):
-        cards = tuple(sorted(self.cards, key=lambda card: card.rank.value))
+        cards = tuple(sorted(self.cards, key=CARD_SORT_ORDER))
 
         # Move Validation
         rank_counts = Counter(card.rank for card in self.cards)
@@ -127,6 +137,9 @@ class Move:
     def __len__(self) -> int:
         return len(self.cards)
 
+    def get_key(self) -> tuple[Rank, ...]:
+        return tuple(card.rank for card in self.cards)
+
     def beats(self, other: "Move") -> bool:
         if self.move_type is not other.move_type:
             # One must be a bomb
@@ -160,15 +173,28 @@ class Hand:
     """
 
     def __init__(self, cards: list[Card]):
-        self.cards: list[Card] = sorted(cards, key=lambda card: card.rank.value)
+        self.cards: list[Card] = sorted(cards, key=CARD_SORT_ORDER)
 
     def __str__(self) -> str:
         return ' '.join(map(str, self.cards))
 
-    def add_cards(self, move: Move):
-        self.cards.extend(move.cards)
+    def __len__(self) -> int:
+        return len(self.cards)
 
-    def remove_cards(self, move: Move):
+    def is_empty(self) -> bool:
+        return len(self.cards) == 0
+
+    def get_key(self) -> tuple[int, ...]:
+        counts = Counter(card.rank for card in self.cards)
+        return tuple(counts[rank] for rank in Rank)
+
+    def add_cards(self, move: Move | None):
+        if move is None: return
+        self.cards.extend(move.cards)
+        self.cards.sort(key=CARD_SORT_ORDER)
+
+    def remove_cards(self, move: Move | None):
+        if move is None: return
         for card in move.cards:
             self.cards.remove(card)
 
