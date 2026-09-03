@@ -297,13 +297,17 @@ class PlayerState:
 class President:
     """
     Run a game of President and coordinate player turns.
+
+    When ``initial_hands`` is provided, use those hands as a preset deal and
+    bypass deck creation, shuffling, and automatic dealing.
     """
 
     def __init__(
         self,
         players: list[Player],
         deck_count: int = 1,
-        cards_per_player: Optional[int] = None
+        cards_per_player: Optional[int] = None,
+        initial_hands: list[list[Card]] | None = None
     ):
         player_count = len(players)
         self.players: dict[PlayerId, PlayerState] = {}
@@ -318,17 +322,26 @@ class President:
         if player_count <= 1:
             raise ValueError("Not Enough Players")
 
-        cards = get_full_deck() * deck_count
-        shuffle(cards)
+        if initial_hands is not None:
+            if len(initial_hands) != player_count:
+                raise ValueError("Each Player Needs an Initial Hand")
+            hands = [Hand(list(cards)) for cards in initial_hands]
+        else:
+            cards = get_full_deck() * deck_count
+            shuffle(cards)
 
-        if cards_per_player and len(cards) < player_count * cards_per_player:
-            raise ValueError("Not Enough Cards")
+            if cards_per_player and len(cards) < player_count * cards_per_player:
+                raise ValueError("Not Enough Cards")
 
-        if not cards_per_player:
-            cards_per_player = len(cards) // player_count
+            if not cards_per_player:
+                cards_per_player = len(cards) // player_count
 
-        for player_id, controller in enumerate(players):
-            hand = Hand(cards[player_id * cards_per_player : (player_id + 1) * cards_per_player])
+            hands = [
+                Hand(cards[player_id * cards_per_player : (player_id + 1) * cards_per_player])
+                for player_id in range(player_count)
+            ]
+
+        for player_id, (controller, hand) in enumerate(zip(players, hands)):
             self.players[player_id] = PlayerState(player_id, controller, hand)
 
     def next_turn(self) -> TurnRecord:

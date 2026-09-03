@@ -1,14 +1,15 @@
+from random import randint
+
 from president import (
+    Card,
     Move, 
     Hand, 
     Player, 
     PlayerView, 
     MoveKey, 
     HandKey, 
-    get_full_deck,
-    FULL_DECK_SIZE
+    get_full_deck
 )
-from random import randint
 
 
 GameState = tuple[HandKey, HandKey, MoveKey | None]
@@ -105,15 +106,24 @@ def find_winning_moves(
 
 class MinimaxBot(Player):
     """
-    Optimally play.
+    Optimally play a two-player game with perfect information.
 
-    Note: This strategy only works with no hidden information.
-    i.e. 2 players 26 cards each.
+    Without an explicit opponent hand, assume one complete deck is split
+    between the two players and infer the opponent's cards from our own hand.
     """
 
-    def __init__(self, name: str):
+    def __init__(
+        self,
+        name: str,
+        known_opponent_cards: list[Card] | None = None
+    ):
         super().__init__(name)
-        self.other_hand: Hand = Hand(get_full_deck())
+        if known_opponent_cards is None:
+            self.other_hand = Hand(get_full_deck())
+            self._opponent_initialized = False
+        else:
+            self.other_hand = Hand(list(known_opponent_cards))
+            self._opponent_initialized = True
         self.memoized_results: dict[GameState, bool] = dict()
 
     def init_other_hand(self, hand: Hand):
@@ -123,8 +133,9 @@ class MinimaxBot(Player):
     def make_move(self, view: PlayerView) -> Move | None:
         hand = Hand(list(view.hand))
 
-        if len(self.other_hand) == FULL_DECK_SIZE:
+        if not self._opponent_initialized:
             self.init_other_hand(hand)
+            self._opponent_initialized = True
 
         self.other_hand.remove_cards(view.current_move)
         winning_moves = find_winning_moves(
@@ -142,22 +153,3 @@ class MinimaxBot(Player):
             return view.possible_moves[0]
 
         return None
-
-
-"""
-hand = Hand([
-    Card(Rank.THREE, Suit.SPADES),
-    Card(Rank.FOUR, Suit.SPADES),
-    Card(Rank.SIX, Suit.SPADES),
-    Card(Rank.SEVEN, Suit.SPADES)
-])
-
-other_hand = Hand([
-    Card(Rank.THREE, Suit.SPADES),
-    Card(Rank.SIX, Suit.SPADES),
-])
-
-winning_moves = minimax_solver(hand, other_hand, None)
-for winning_move in winning_moves:
-    print(winning_move)
-"""
