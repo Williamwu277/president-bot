@@ -37,8 +37,4 @@ def get_move_keys(moves: list[Move], move_type: MoveType) -> set[tuple[Rank, ...
     """
     Return the rank keys for moves of one type.
     """
-    return {
-        move.get_key()
-        for move in moves
-        if move.move_type is move_type
-    }
+    return {move.get_key() for move in moves if move.move_type is move_type}

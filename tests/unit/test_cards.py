@@ -1,4 +1,5 @@
 import pytest
+
 from src.president import Card, Rank, Suit
 
 
@@ -6,26 +7,36 @@ from src.president import Card, Rank, Suit
     ("card", "other_card", "is_bigger"),
     [
         pytest.param(
-            Card(Rank.THREE, Suit.SPADES), Card(Rank.FOUR, Suit.SPADES), False,
-            id= "Smaller card"
+            Card(Rank.THREE, Suit.SPADES),
+            Card(Rank.FOUR, Suit.SPADES),
+            False,
+            id="Smaller card",
         ),
         pytest.param(
-            Card(Rank.FOUR, Suit.SPADES), Card(Rank.THREE, Suit.SPADES), True,
-            id= "Bigger card"
+            Card(Rank.FOUR, Suit.SPADES),
+            Card(Rank.THREE, Suit.SPADES),
+            True,
+            id="Bigger card",
         ),
         pytest.param(
-            Card(Rank.THREE, Suit.SPADES), Card(Rank.THREE, Suit.DIAMONDS), False,
-            id= "Equal rank, different suit"
+            Card(Rank.THREE, Suit.SPADES),
+            Card(Rank.THREE, Suit.DIAMONDS),
+            False,
+            id="Equal rank, different suit",
         ),
         pytest.param(
-            Card(Rank.ACE, Suit.SPADES), Card(Rank.KING, Suit.SPADES), True,
-            id= "Ace is bigger than king"
+            Card(Rank.ACE, Suit.SPADES),
+            Card(Rank.KING, Suit.SPADES),
+            True,
+            id="Ace is bigger than king",
         ),
         pytest.param(
-            Card(Rank.TWO, Suit.SPADES), Card(Rank.ACE, Suit.SPADES), True,
-            id= "Two is bigger than ace"
-        )
-    ]
+            Card(Rank.TWO, Suit.SPADES),
+            Card(Rank.ACE, Suit.SPADES),
+            True,
+            id="Two is bigger than ace",
+        ),
+    ],
 )
 def test_card_comparisons(card, other_card, is_bigger):
     """

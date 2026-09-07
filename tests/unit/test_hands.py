@@ -10,9 +10,7 @@ from tests.helpers import (
 
 def test_key():
     hand = Hand(
-        make_cards(Rank.THREE, 2)
-        + make_cards(Rank.FIVE, 1)
-        + make_cards(Rank.TWO, 1)
+        make_cards(Rank.THREE, 2) + make_cards(Rank.FIVE, 1) + make_cards(Rank.TWO, 1)
     )
 
     assert hand.get_key() == (2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
@@ -41,10 +39,7 @@ def test_remove_cards():
 def test_get_all_same_rank_moves():
     moves = Hand(make_cards(Rank.FIVE, 4)).get_all_moves()
 
-    assert {
-        (move.move_type, move.get_key())
-        for move in moves
-    } == {
+    assert {(move.move_type, move.get_key()) for move in moves} == {
         (MoveType.SINGLE, (Rank.FIVE,)),
         (MoveType.DOUBLE, (Rank.FIVE,) * 2),
         (MoveType.TRIPLE, (Rank.FIVE,) * 3),
@@ -81,10 +76,7 @@ def test_get_invalid_straights(ranks):
 
 
 def test_get_all_full_house():
-    hand = Hand(
-        make_cards(Rank.FIVE, 3)
-        + make_cards(Rank.SEVEN, 2)
-    )
+    hand = Hand(make_cards(Rank.FIVE, 3) + make_cards(Rank.SEVEN, 2))
 
     assert get_move_keys(hand.get_all_moves(), MoveType.FULL_HOUSE) == {
         (Rank.FIVE, Rank.FIVE, Rank.FIVE, Rank.SEVEN, Rank.SEVEN)
@@ -99,18 +91,13 @@ def test_get_possible_starting_moves():
 
 def test_get_possible_moves():
     hand = Hand(
-        make_cards(Rank.THREE, 1)
-        + make_cards(Rank.FIVE, 2)
-        + make_cards(Rank.EIGHT, 4)
+        make_cards(Rank.THREE, 1) + make_cards(Rank.FIVE, 2) + make_cards(Rank.EIGHT, 4)
     )
     current_move = Move(tuple(make_cards(Rank.FOUR, 1)))
 
     possible_moves = hand.get_possible_moves(current_move)
 
-    assert {
-        (move.move_type, move.get_key())
-        for move in possible_moves
-    } == {
+    assert {(move.move_type, move.get_key()) for move in possible_moves} == {
         (MoveType.SINGLE, (Rank.FIVE,)),
         (MoveType.SINGLE, (Rank.EIGHT,)),
         (MoveType.BOMB, (Rank.EIGHT,) * 4),

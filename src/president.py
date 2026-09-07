@@ -7,8 +7,6 @@ from collections import Counter, defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from random import shuffle
-from typing import Optional
-
 
 FULL_DECK_SIZE = 52
 
@@ -34,12 +32,18 @@ class Rank(Enum):
 
     def __str__(self) -> str:
         match self:
-            case Rank.ACE: return "A"
-            case Rank.TWO: return "2"
-            case Rank.JACK: return "J"
-            case Rank.QUEEN: return "Q"
-            case Rank.KING: return "K"
-            case _: return str(self.value)
+            case Rank.ACE:
+                return "A"
+            case Rank.TWO:
+                return "2"
+            case Rank.JACK:
+                return "J"
+            case Rank.QUEEN:
+                return "Q"
+            case Rank.KING:
+                return "K"
+            case _:
+                return str(self.value)
 
 
 class Suit(Enum):
@@ -86,7 +90,7 @@ class Card:
     suit: Suit
 
     def __repr__(self) -> str:
-        return f"{str(self.rank)}{str(self.suit)}"
+        return f"{self.rank!s}{self.suit!s}"
 
     def beats(self, other: "Card") -> bool:
         return self.rank.value > other.rank.value
@@ -121,7 +125,10 @@ class Move:
             case [2, 3]:
                 move_type = MoveType.FULL_HOUSE
             case [1, 1, 1, 1, 1]:
-                if Rank.TWO in rank_counts or (cards[-1].rank.value - cards[0].rank.value) != 4:
+                if (
+                    Rank.TWO in rank_counts
+                    or (cards[-1].rank.value - cards[0].rank.value) != 4
+                ):
                     raise ValueError("Invalid Move")
 
                 move_type = MoveType.STRAIGHT
@@ -146,10 +153,10 @@ class Move:
             if MoveType.BOMB not in [self.move_type, other.move_type]:
                 return False
             return self.move_type is MoveType.BOMB
-        
+
         elif self.move_type is MoveType.BOMB and other.move_type is MoveType.BOMB:
             return False
-        
+
         elif self.move_type is MoveType.FULL_HOUSE:
             double, triple = self.cards[0], self.cards[-1]
             other_double, other_triple = other.cards[0], other.cards[-1]
@@ -163,7 +170,7 @@ class Move:
                 return double.beats(other_double)
 
             return triple.beats(other_triple)
-        
+
         return self.cards[0].beats(other.cards[0])
 
 
@@ -176,7 +183,7 @@ class Hand:
         self.cards: list[Card] = sorted(cards, key=CARD_SORT_ORDER)
 
     def __str__(self) -> str:
-        return ' '.join(map(str, self.cards))
+        return " ".join(map(str, self.cards))
 
     def __len__(self) -> int:
         return len(self.cards)
@@ -189,12 +196,14 @@ class Hand:
         return tuple(counts[rank] for rank in Rank)
 
     def add_cards(self, move: Move | None):
-        if move is None: return
+        if move is None:
+            return
         self.cards.extend(move.cards)
         self.cards.sort(key=CARD_SORT_ORDER)
 
     def remove_cards(self, move: Move | None):
-        if move is None: return
+        if move is None:
+            return
         for card in move.cards:
             self.cards.remove(card)
 
@@ -222,14 +231,28 @@ class Hand:
             if len(straight) > 5:
                 straight.pop(0)
 
-            if len(straight) == 5 and (straight[-1].rank.value - straight[0].rank.value) == 4:
+            if (
+                len(straight) == 5
+                and (straight[-1].rank.value - straight[0].rank.value) == 4
+            ):
                 moves.append(Move(tuple(straight)))
 
         # Full house
         for first_rank in card_ranks:
             for second_rank in card_ranks:
-                if first_rank is not second_rank and len(card_ranks[first_rank]) >= 3 and len(card_ranks[second_rank]) >= 2:
-                    moves.append(Move(tuple(card_ranks[first_rank][0:3] + card_ranks[second_rank][0:2])))
+                if (
+                    first_rank is not second_rank
+                    and len(card_ranks[first_rank]) >= 3
+                    and len(card_ranks[second_rank]) >= 2
+                ):
+                    moves.append(
+                        Move(
+                            tuple(
+                                card_ranks[first_rank][0:3]
+                                + card_ranks[second_rank][0:2]
+                            )
+                        )
+                    )
 
         return moves
 
@@ -282,8 +305,6 @@ class Player(ABC):
         Return a legal move, or None to pass.
         """
 
-        pass
-
 
 @dataclass
 class PlayerState:
@@ -306,8 +327,8 @@ class President:
         self,
         players: list[Player],
         deck_count: int = 1,
-        cards_per_player: Optional[int] = None,
-        initial_hands: list[list[Card]] | None = None
+        cards_per_player: int | None = None,
+        initial_hands: list[list[Card]] | None = None,
     ):
         player_count = len(players)
         self.players: dict[PlayerId, PlayerState] = {}
@@ -337,7 +358,12 @@ class President:
                 cards_per_player = len(cards) // player_count
 
             hands = [
-                Hand(cards[player_id * cards_per_player : (player_id + 1) * cards_per_player])
+                Hand(
+                    cards[
+                        player_id * cards_per_player : (player_id + 1)
+                        * cards_per_player
+                    ]
+                )
                 for player_id in range(player_count)
             ]
 
@@ -363,7 +389,7 @@ class President:
             current_move=self.current_move,
             current_trick=tuple(self.current_trick),
             trick_history=tuple(self.trick_history),
-            possible_moves=possible_moves
+            possible_moves=possible_moves,
         )
 
         move = player.controller.make_move(view)
@@ -397,7 +423,10 @@ class President:
         if self.last_player_to_play is not None:
             players_who_must_pass.discard(self.last_player_to_play)
 
-        if self.current_move is not None and players_who_must_pass <= self.passed_players:
+        if (
+            self.current_move is not None
+            and players_who_must_pass <= self.passed_players
+        ):
             self.trick_history.append(tuple(self.current_trick))
             self.current_trick.clear()
             self.current_move = None

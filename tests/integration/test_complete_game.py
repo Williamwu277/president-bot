@@ -23,6 +23,5 @@ def test_complete_multiplayer_game():
     assert sorted(standings) == sorted(player.name for player in players)
     assert list(game.turn_order) == []
     assert all(
-        game.players[player_id].hand.is_empty()
-        for player_id in game.standings[:-1]
+        game.players[player_id].hand.is_empty() for player_id in game.standings[:-1]
     )

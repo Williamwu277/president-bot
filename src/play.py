@@ -1,17 +1,17 @@
-from .president import President
-from .strategies.human_play import HumanPlayer
-from .strategies.random_bot import RandomBot
-from .strategies.minimal_card_bot import MinimalCardBot
-from .strategies.minimax import MinimaxBot
 from random import shuffle
 
+from .president import President
+from .strategies.human_play import HumanPlayer
+from .strategies.minimal_card_bot import MinimalCardBot
+from .strategies.minimax import MinimaxBot
+from .strategies.random_bot import RandomBot
 
 MAX_BOTS = 5
 
 strategy_registry = [
     (RandomBot, "Random Bot"),
     (MinimalCardBot, "Minimal Card Bot"),
-    (MinimaxBot, "Minimax Bot")
+    (MinimaxBot, "Minimax Bot"),
 ]
 
 
@@ -22,7 +22,7 @@ def play_game():
         raise ValueError("Invalid scenario")
 
     print(f"We currently have a registry of {len(strategy_registry)} bot types:")
-    for bot_id, (_, bot_name) in enumerate(strategy_registry, start = 1):
+    for bot_id, (_, bot_name) in enumerate(strategy_registry, start=1):
         print(f"{bot_id}: {bot_name}")
     print("Please pick the id of the bots you want to play against one per line:")
 
@@ -45,9 +45,7 @@ def play_game():
     card_count = int(input("Number of cards per player: "))
 
     game = President(
-        players = players,
-        deck_count = deck_count,
-        cards_per_player = card_count
+        players=players, deck_count=deck_count, cards_per_player=card_count
     )
 
     standings = game.run()
