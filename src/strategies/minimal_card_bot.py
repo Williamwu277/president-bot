@@ -1,4 +1,24 @@
-from president import Move, Player, PlayerView
+from ..president import Move, Player, PlayerView
+
+
+def get_minimal_card_move(possible_moves: list[Move], current_move: Move | None) -> Move | None:
+    if not possible_moves:
+        return None
+    
+    if current_move:
+        # If responding to a move, choose the smallest response
+        sorted_moves = sorted(
+            possible_moves,
+            key=lambda move: (len(move), max(move.cards[0].rank.value, move.cards[-1].rank.value))
+        )
+        return sorted_moves[0]
+    else:
+        # Otherwise, choose the smallest response that kills off the most cards
+        sorted_moves = sorted(
+            possible_moves,
+            key=lambda move: (min(move.cards[0].rank.value, move.cards[-1].rank.value), -len(move))
+        )
+        return sorted_moves[0]
 
 
 class MinimalCardBot(Player):
@@ -10,20 +30,4 @@ class MinimalCardBot(Player):
     """
 
     def make_move(self, view: PlayerView) -> Move | None:
-        if not view.possible_moves:
-            return None
-        
-        if view.current_move:
-            # If responding to a move, choose the smallest response
-            sorted_moves = sorted(
-                view.possible_moves,
-                key=lambda move: (len(move), max(move.cards[0].rank.value, move.cards[-1].rank.value))
-            )
-            return sorted_moves[0]
-        else:
-            # Otherwise, choose the smallest response that kills off the most cards
-            sorted_moves = sorted(
-                view.possible_moves,
-                key=lambda move: (min(move.cards[0].rank.value, move.cards[-1].rank.value), -len(move))
-            )
-            return sorted_moves[0]
+        return get_minimal_card_move(view.possible_moves, view.current_move)

@@ -1,8 +1,8 @@
-from president import President
-from strategies.human_play import HumanPlayer
-from strategies.random_bot import RandomBot
-from strategies.minimal_card_bot import MinimalCardBot
-from strategies.minimax import MinimaxBot
+from .president import President
+from .strategies.human_play import HumanPlayer
+from .strategies.random_bot import RandomBot
+from .strategies.minimal_card_bot import MinimalCardBot
+from .strategies.minimax import MinimaxBot
 from random import shuffle
 
 

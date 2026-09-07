@@ -1,6 +1,6 @@
 from random import randint
 
-from president import Move, Player, PlayerView
+from ..president import Move, Player, PlayerView
 
 
 class RandomBot(Player):

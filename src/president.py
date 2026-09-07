@@ -121,7 +121,7 @@ class Move:
             case [2, 3]:
                 move_type = MoveType.FULL_HOUSE
             case [1, 1, 1, 1, 1]:
-                if Rank.TWO in rank_counts:
+                if Rank.TWO in rank_counts or (cards[-1].rank.value - cards[0].rank.value) != 4:
                     raise ValueError("Invalid Move")
 
                 move_type = MoveType.STRAIGHT
@@ -137,7 +137,7 @@ class Move:
     def __len__(self) -> int:
         return len(self.cards)
 
-    def get_key(self) -> tuple[Rank, ...]:
+    def get_key(self) -> MoveKey:
         return tuple(card.rank for card in self.cards)
 
     def beats(self, other: "Move") -> bool:
@@ -151,15 +151,15 @@ class Move:
             return False
         
         elif self.move_type is MoveType.FULL_HOUSE:
-            double, triple = self.cards[0], self.cards[-1] 
+            double, triple = self.cards[0], self.cards[-1]
             other_double, other_triple = other.cards[0], other.cards[-1]
 
-            if self.cards[2] == self.cards[0]:
+            if self.cards[2].rank == self.cards[0].rank:
                 double, triple = triple, double
-            if other.cards[2] == other.cards[0]:
+            if other.cards[2].rank == other.cards[0].rank:
                 other_double, other_triple = other_triple, other_double
 
-            if triple == other_triple:
+            if triple.rank == other_triple.rank:
                 return double.beats(other_double)
 
             return triple.beats(other_triple)
@@ -184,7 +184,7 @@ class Hand:
     def is_empty(self) -> bool:
         return len(self.cards) == 0
 
-    def get_key(self) -> tuple[int, ...]:
+    def get_key(self) -> HandKey:
         counts = Counter(card.rank for card in self.cards)
         return tuple(counts[rank] for rank in Rank)
 

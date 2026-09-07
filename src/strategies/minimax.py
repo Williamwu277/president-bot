@@ -1,6 +1,6 @@
 from random import randint
 
-from president import (
+from ..president import (
     Card,
     Move, 
     Hand, 
@@ -10,6 +10,7 @@ from president import (
     HandKey, 
     get_full_deck
 )
+from .minimal_card_bot import get_minimal_card_move
 
 
 GameState = tuple[HandKey, HandKey, MoveKey | None]
@@ -149,7 +150,6 @@ class MinimaxBot(Player):
             move_index = randint(0, len(winning_moves) - 1)
             return winning_moves[move_index]
 
-        if len(view.possible_moves) > 0:
-            return view.possible_moves[0]
-
-        return None
+        # If current trajectory points to a loss, make a best effort move 
+        # In case the opponent makes an exploitable mistake
+        return get_minimal_card_move(view.possible_moves, view.current_move)
