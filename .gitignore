@@ -3,3 +3,4 @@
 testing.py
 env
 .pytest_cache
+.ruff_cache
