@@ -346,7 +346,7 @@ class President:
         if initial_hands is not None:
             if len(initial_hands) != player_count:
                 raise ValueError("Each Player Needs an Initial Hand")
-            hands = [Hand(list(cards)) for cards in initial_hands]
+            hands = [Hand(cards) for cards in initial_hands]
         else:
             cards = get_full_deck() * deck_count
             shuffle(cards)

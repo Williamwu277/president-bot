@@ -1,8 +1,10 @@
 import random
 import time
 
-from src.president import Hand, get_full_deck
+from src.president import Hand, President, get_full_deck
+from src.strategies.minimal_card_bot import MinimalCardBot
 from src.strategies.minimax import minimax_solver
+from src.strategies.random_bot import RandomBot
 
 SEED = 67
 random.seed(SEED)
@@ -60,3 +62,52 @@ for hand_size, game_count in zip(MINIMAX_HAND_SIZES, MINIMAX_GAME_COUNTS):
     print(
         f"For hand size {hand_size}: Original {wr_1}% WR ({time_1}s). Swapped hands {wr_2}% WR ({time_2}s)."
     )
+
+
+"""
+Second question: Given all the strategies, which one is the best?
+
+Methodology: A round robin tournament where each bot strategy plays against every other
+bot strategy for a number of games. To remain balanced, each generated pair of hands 
+will be played normally, swapped, then with the other player going first on both.
+The tournament will be played with 10 cards each and then 20 cards.
+
+Restrictions: Can only calculate 2-player win-rates currently.
+
+RandomBot v.s. MinimalCardBot with 10 cards: 20.5% WR to 79.5% WR in 0.45s
+RandomBot v.s. MinimalCardBot with 20 cards: 8.6% WR to 91.4% WR in 1.35s
+"""
+TOURNAMENT_GAME_COUNT = 1000
+TOURNAMENT_PLAYERS = [RandomBot, MinimalCardBot]
+TOURNAMENT_HAND_SIZES = [10, 20]
+
+
+for i in range(len(TOURNAMENT_PLAYERS)):
+    for j in range(i + 1, len(TOURNAMENT_PLAYERS)):
+        for hand_size in TOURNAMENT_HAND_SIZES:
+            player_1_wins = 0
+            start_time = time.perf_counter()
+            for game_id in range(TOURNAMENT_GAME_COUNT // 4):
+                shuffled_deck = get_full_deck(shuffled=True)
+                hand_a, hand_b = (
+                    shuffled_deck[0:hand_size],
+                    shuffled_deck[hand_size : hand_size * 2],
+                )
+                for player_1_id, player_2_id in [(i, j), (j, i)]:
+                    for hand_1, hand_2 in [(hand_a, hand_b), (hand_b, hand_a)]:
+                        players = [
+                            TOURNAMENT_PLAYERS[player_1_id](f"{player_1_id}"),
+                            TOURNAMENT_PLAYERS[player_2_id](f"{player_2_id}"),
+                        ]
+                        game = President(players, initial_hands=[hand_1, hand_2])
+                        standings = game.run()
+                        if standings[0] == f"{i}":
+                            player_1_wins += 1
+            time_elapsed = round(time.perf_counter() - start_time, 2)
+            bot_1 = TOURNAMENT_PLAYERS[i].__name__
+            bot_2 = TOURNAMENT_PLAYERS[j].__name__
+            bot_1_wr = round(player_1_wins / TOURNAMENT_GAME_COUNT * 100, 2)
+            bot_2_wr = 100 - bot_1_wr
+            print(
+                f"{bot_1} v.s. {bot_2} with {hand_size} cards: {bot_1_wr}% WR to {bot_2_wr}% WR in {time_elapsed}s"
+            )
