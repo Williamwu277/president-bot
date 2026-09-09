@@ -1,5 +1,4 @@
 from collections import defaultdict
-from dataclasses import dataclass
 
 import torch
 
@@ -49,19 +48,6 @@ def get_move_encoding_map() -> dict[MoveKey | None, int]:
 
 
 move_encoding_map = get_move_encoding_map()
-
-
-@dataclass(frozen=True)
-class EncodedState:
-    """
-    The 950 features contain: current move [217], current-move owner [4],
-    players passed since that move [4], own hand [13], own played ranks [13],
-    and three opponent slots [233 each: exists, active, cards remaining,
-    played ranks [13], and pass history [217]].
-    """
-
-    features: torch.Tensor  # float32, shape: [950]
-    legal_moves: torch.Tensor  # bool, shape: [217]
 
 
 def find_pass_map(
@@ -167,9 +153,14 @@ def encode_hand(hand: list[Card]) -> list[float]:
     return [counts[rank] / 4 for rank in Rank]
 
 
-def encode_view(view: PlayerView) -> EncodedState:
+def encode_view(view: PlayerView) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Encode a player's game state into model inputs.
+
+    The 950 features contain: current move [217], current-move owner [4],
+    players passed since that move [4], own hand [13], own played ranks [13],
+    and three opponent slots [233 each: exists, active, cards remaining,
+    played ranks [13], and pass history [217]].
     """
     player_count = len(view.cards_remaining)
 
@@ -264,7 +255,4 @@ def encode_view(view: PlayerView) -> EncodedState:
 
     legal_moves = torch.tensor(legal_move_values, dtype=torch.bool)
 
-    return EncodedState(
-        features,  # [217] + [4] + [4] + [13] + [13] + ([233] * 3) = [950]
-        legal_moves,  # [217]
-    )
+    return features, legal_moves

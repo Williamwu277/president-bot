@@ -47,20 +47,20 @@ def test_move_round_trip():
 
 @pytest.mark.parametrize("player_count", [2, 3, 4])
 def test_shapes(player_count):
-    state = encode_view(make_view(player_count))
+    features, legal_moves = encode_view(make_view(player_count))
 
-    assert state.features.shape == (950,)
-    assert state.legal_moves.shape == (217,)
+    assert features.shape == (950,)
+    assert legal_moves.shape == (217,)
 
 
 def test_player_slots():
     view = make_view(3, turn_order=(0, 2), cards_remaining=(1, 0, 1))
-    state = encode_view(view)
+    features, _ = encode_view(view)
     first_slot = MOVE_COUNT + 8 + (2 * len(Rank))
     missing_slot = first_slot + (2 * OPPONENT_SLOT_SIZE)
 
-    assert state.features[first_slot : first_slot + 2].tolist() == [1, 0]
-    assert state.features[missing_slot : missing_slot + 2].tolist() == [0, 0]
+    assert features[first_slot : first_slot + 2].tolist() == [1, 0]
+    assert features[missing_slot : missing_slot + 2].tolist() == [0, 0]
 
 
 def test_current_trick():
@@ -73,7 +73,7 @@ def test_current_trick():
         TurnRecord(2, None),
     )
 
-    features = encode_view(make_view(current_move=five, current_trick=trick)).features
+    features, _ = encode_view(make_view(current_move=five, current_trick=trick))
 
     assert features[MOVE_COUNT : MOVE_COUNT + 4].tolist() == [0, 1, 0, 0]
     assert features[MOVE_COUNT + 4 : MOVE_COUNT + 8].tolist() == [0, 0, 1, 0]
@@ -84,13 +84,13 @@ def test_trick_history():
     five = Move(tuple(make_cards(Rank.FIVE, 1)))
     old_trick = (TurnRecord(1, three), TurnRecord(2, None))
     current_trick = (TurnRecord(2, five), TurnRecord(1, None))
-    features = encode_view(
+    features, _ = encode_view(
         make_view(
             current_move=five,
             current_trick=current_trick,
             trick_history=(old_trick,),
         )
-    ).features
+    )
     first_slot = MOVE_COUNT + 8 + (2 * len(Rank))
     second_slot = first_slot + OPPONENT_SLOT_SIZE
     played = 3
@@ -106,8 +106,6 @@ def test_teacher_action():
     three = Move(tuple(make_cards(Rank.THREE, 1)))
     hand = Hand(make_cards(Rank.FIVE, 2))
     moves = hand.get_possible_moves(three)
-    legal = encode_view(
-        make_view(current_move=three, possible_moves=tuple(moves))
-    ).legal_moves
+    _, legal = encode_view(make_view(current_move=three, possible_moves=tuple(moves)))
 
     assert all(legal[encode_move(move)] for move in [None, *moves])
