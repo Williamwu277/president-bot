@@ -6,7 +6,7 @@ from .strategies.minimal_card_bot import MinimalCardBot
 from .strategies.minimax import MinimaxBot
 from .strategies.random_bot import RandomBot
 
-MAX_BOTS = 5
+MAX_BOTS = 3
 
 strategy_registry = [
     (RandomBot, "Random Bot"),
@@ -16,7 +16,7 @@ strategy_registry = [
 
 
 def play_game():
-    bot_count = int(input("Number of bots [1, 5]: "))
+    bot_count = int(input("Number of bots [1, 3]: "))
 
     if bot_count > MAX_BOTS or bot_count <= 0:
         raise ValueError("Invalid scenario")

@@ -280,10 +280,15 @@ class TurnRecord:
 class PlayerView:
     """
     An immutable snapshot provided to a player for one turn.
+
+    ``turn_order`` contains the active player IDs in play order, beginning
+    with ``player_id``. ``cards_remaining`` is indexed by player ID and
+    includes every player, including players who have already gone out.
     """
 
     player_id: PlayerId
     hand: tuple[Card, ...]
+    turn_order: tuple[PlayerId, ...]
     cards_remaining: tuple[int, ...]
     current_move: Move | None
     current_trick: tuple[TurnRecord, ...]
@@ -382,6 +387,7 @@ class President:
         view = PlayerView(
             player_id=player_id,
             hand=tuple(player.hand.cards),
+            turn_order=tuple(self.turn_order),
             cards_remaining=tuple(
                 len(self.players[current_player_id].hand.cards)
                 for current_player_id in range(len(self.players))

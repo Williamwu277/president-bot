@@ -46,7 +46,34 @@ def test_next_turn():
     assert game.players[0].hand.cards == [five]
     assert list(game.turn_order) == [1, 0]
     assert game.current_move == move
+    assert players[0].views[0].turn_order == (0, 1)
     assert players[0].views[0].cards_remaining == (2, 1)
+
+
+def test_player_view_turn_order_and_card_counts():
+    three = make_cards(Rank.THREE, 1)[0]
+    four = make_cards(Rank.FOUR, 1)[0]
+    seven = make_cards(Rank.SEVEN, 1)[0]
+    players = [
+        ScriptedPlayer("Player 0", Move((three,))),
+        ScriptedPlayer("Player 1", Move((four,))),
+        ScriptedPlayer("Player 2"),
+    ]
+    game = President(
+        players,
+        initial_hands=[[three], [four, seven], make_cards(Rank.FIVE, 1)],
+    )
+
+    game.next_turn()
+    game.next_turn()
+
+    view = players[1].views[0]
+    assert view.turn_order == (1, 2)
+    assert view.cards_remaining == (0, 2, 1)
+    assert tuple(view.cards_remaining[player_id] for player_id in view.turn_order) == (
+        2,
+        1,
+    )
 
 
 def test_cannot_pass_first_move():

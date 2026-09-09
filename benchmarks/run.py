@@ -87,12 +87,14 @@ for i in range(len(TOURNAMENT_PLAYERS)):
         for hand_size in TOURNAMENT_HAND_SIZES:
             player_1_wins = 0
             start_time = time.perf_counter()
+
             for game_id in range(TOURNAMENT_GAME_COUNT // 4):
                 shuffled_deck = get_full_deck(shuffled=True)
                 hand_a, hand_b = (
                     shuffled_deck[0:hand_size],
                     shuffled_deck[hand_size : hand_size * 2],
                 )
+
                 for player_1_id, player_2_id in [(i, j), (j, i)]:
                     for hand_1, hand_2 in [(hand_a, hand_b), (hand_b, hand_a)]:
                         players = [
@@ -101,13 +103,16 @@ for i in range(len(TOURNAMENT_PLAYERS)):
                         ]
                         game = President(players, initial_hands=[hand_1, hand_2])
                         standings = game.run()
+
                         if standings[0] == f"{i}":
                             player_1_wins += 1
+
             time_elapsed = round(time.perf_counter() - start_time, 2)
             bot_1 = TOURNAMENT_PLAYERS[i].__name__
             bot_2 = TOURNAMENT_PLAYERS[j].__name__
             bot_1_wr = round(player_1_wins / TOURNAMENT_GAME_COUNT * 100, 2)
             bot_2_wr = 100 - bot_1_wr
+
             print(
                 f"{bot_1} v.s. {bot_2} with {hand_size} cards: {bot_1_wr}% WR to {bot_2_wr}% WR in {time_elapsed}s"
             )
