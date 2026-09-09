@@ -148,4 +148,5 @@ test_training_parameters: list[TrainingSetParameter] = [
 
 if __name__ == "__main__":
     data = generate_data(test_training_parameters)
+    print(f"Generated {len(data):,} training examples")
     save_data(data, Path("data/test_data.pt"))
