@@ -11,11 +11,12 @@ from ..strategies.random_bot import RandomBot
 from .encoder import MOVE_COUNT, SCHEMA_VERSION, STATE_SIZE, encode_move, encode_view
 
 
-@dataclass(frozen=True)
+@dataclass
 class TrainingExample:
     features: torch.Tensor
     legal_moves: torch.Tensor
     target_move: int
+    outcome: int | None = None
 
 
 class RecordingPlayer(Player):
@@ -51,11 +52,12 @@ def generate_training_set(
 
     for _ in range(games):
         teacher_type, teacher_args = teacher
+        game_data: list[TrainingExample] = []
 
         recording_teacher = RecordingPlayer(
             name="Teacher",
             player=teacher_type(*teacher_args),
-            data=data,
+            data=game_data,
         )
 
         opponent_players = [
@@ -69,7 +71,16 @@ def generate_training_set(
             players,
             cards_per_player=cards_per_player,
         )
-        game.run()
+        winner_name = game.run()[0]
+
+        result = -1
+        if winner_name == recording_teacher.name:
+            result = 1
+
+        for training_example in game_data:
+            training_example.outcome = result
+
+        data.extend(game_data)
 
     return data
 
@@ -103,6 +114,9 @@ def save_data(data: list[TrainingExample], path: Path) -> None:
             [example.target_move for example in data],
             dtype=torch.long,
         ),
+        "outcomes": torch.tensor(
+            [example.outcome for example in data], dtype=torch.float32
+        ),
     }
 
     torch.save(payload, path)
@@ -128,25 +142,46 @@ def load_examples(path: Path):
         payload["features"],
         payload["legal_moves"],
         payload["target_moves"],
+        payload["outcomes"],
     )
 
 
-test_training_parameters: list[TrainingSetParameter] = [
+training_parameters: list[TrainingSetParameter] = [
     TrainingSetParameter(
-        100, 26, (MinimalCardBot, ("Teacher",)), [(RandomBot, ("Opponent",))]
+        1000, 26, (MinimalCardBot, ("",)), [(RandomBot, ("Opponent",))]
     ),
     TrainingSetParameter(
-        100, 13, (MinimalCardBot, ("Teacher",)), [(RandomBot, ("Opponent",))]
+        1000, 13, (MinimalCardBot, ("",)), [(RandomBot, ("Opponent",))]
     ),
     TrainingSetParameter(
-        100, 26, (MinimalCardBot, ("Teacher",)), [(MinimalCardBot, ("Opponent",))]
+        1000, 26, (MinimalCardBot, ("",)), [(MinimalCardBot, ("Opponent",))]
     ),
     TrainingSetParameter(
-        100, 13, (MinimalCardBot, ("Teacher",)), [(MinimalCardBot, ("Opponent",))]
+        1000, 13, (MinimalCardBot, ("",)), [(MinimalCardBot, ("Opponent",))]
     ),
 ]
 
+
+validation_parameters: list[TrainingSetParameter] = [
+    TrainingSetParameter(
+        200, 26, (MinimalCardBot, ("",)), [(RandomBot, ("Opponent",))]
+    ),
+    TrainingSetParameter(
+        200, 13, (MinimalCardBot, ("",)), [(RandomBot, ("Opponent",))]
+    ),
+    TrainingSetParameter(
+        200, 26, (MinimalCardBot, ("",)), [(MinimalCardBot, ("Opponent",))]
+    ),
+    TrainingSetParameter(
+        200, 13, (MinimalCardBot, ("",)), [(MinimalCardBot, ("Opponent",))]
+    ),
+]
+
+
 if __name__ == "__main__":
-    data = generate_data(test_training_parameters)
-    print(f"Generated {len(data):,} training examples")
-    save_data(data, Path("data/test_data.pt"))
+    training_data = generate_data(training_parameters)
+    validation_data = generate_data(validation_parameters)
+    print(f"Generated {len(training_data):,} training examples")
+    print(f"Generated {len(validation_data):,} validation examples")
+    save_data(training_data, Path("data/training_data.pt"))
+    save_data(training_data, Path("data/validation_data.pt"))

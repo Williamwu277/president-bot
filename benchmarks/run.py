@@ -71,32 +71,25 @@ Second question: Given all the strategies, which one is the best?
 Methodology: A round robin tournament where each bot strategy plays against every other
 bot strategy for a number of games. To remain balanced, each generated pair of hands 
 will be played normally, swapped, then with the other player going first on both.
-The tournament will be played with 10 cards each and then 20 cards.
+The tournament will be played with 10 cards, 15 cards and then 20 cards each.
 
 Restrictions: Can only calculate 2-player win-rates currently.
 
-RandomBot v.s. MinimalCardBot with 10 cards: 20.5% WR to 79.5% WR in 0.44s
-RandomBot v.s. MinimalCardBot with 20 cards: 8.6% WR to 91.4% WR in 1.34s
-RandomBot v.s. ModelBot with 10 cards: 24.0% WR to 76.0% WR in 2.08s
-RandomBot v.s. ModelBot with 20 cards: 7.7% WR to 92.3% WR in 3.83s
-MinimalCardBot v.s. ModelBot with 10 cards: 50.7% WR to 49.3% WR in 1.85s
-MinimalCardBot v.s. ModelBot with 20 cards: 50.5% WR to 49.5% WR in 3.66s
+Over 1000 games with hand sizes [10, 15, 20] without question 1 running first on the seed:
 
-Over 10000 games with hand sizes [10, 15, 20] without question 1 running first on the seed:
-
-RandomBot v.s. MinimalCardBot with 10 cards: 21.42% WR to 78.58% WR in 4.44s
-RandomBot v.s. MinimalCardBot with 15 cards: 12.84% WR to 87.16% WR in 8.3s
-RandomBot v.s. MinimalCardBot with 20 cards: 7.99% WR to 92.01% WR in 12.9s
-RandomBot v.s. ModelBot with 10 cards: 22.52% WR to 77.48% WR in 20.57s
-RandomBot v.s. ModelBot with 15 cards: 12.28% WR to 87.72% WR in 32.76s
-RandomBot v.s. ModelBot with 20 cards: 8.63% WR to 91.37% WR in 47.93s
-MinimalCardBot v.s. ModelBot with 10 cards: 50.56% WR to 49.44% WR in 24.29s
-MinimalCardBot v.s. ModelBot with 15 cards: 50.68% WR to 49.32% WR in 35.99s
-MinimalCardBot v.s. ModelBot with 20 cards: 51.08% WR to 48.92% WR in 46.77s
+RandomBot v.s. MinimalCardBot with 10 cards: 22.2% WR to 77.8% WR in 0.66s
+RandomBot v.s. MinimalCardBot with 15 cards: 11.8% WR to 88.2% WR in 1.25s
+RandomBot v.s. MinimalCardBot with 20 cards: 9.6% WR to 90.4% WR in 1.92s
+RandomBot v.s. ModelBot with 10 cards: 20.7% WR to 79.3% WR in 3.42s
+RandomBot v.s. ModelBot with 15 cards: 11.2% WR to 88.8% WR in 5.17s
+RandomBot v.s. ModelBot with 20 cards: 7.4% WR to 92.6% WR in 6.54s
+MinimalCardBot v.s. ModelBot with 10 cards: 50.2% WR to 49.8% WR in 3.18s
+MinimalCardBot v.s. ModelBot with 15 cards: 50.1% WR to 49.9% WR in 4.67s
+MinimalCardBot v.s. ModelBot with 20 cards: 50.0% WR to 50.0% WR in 6.09s
 """
 TOURNAMENT_GAME_COUNT = 1000
 TOURNAMENT_PLAYERS = [RandomBot, MinimalCardBot, ModelBot]
-TOURNAMENT_HAND_SIZES = [10, 20]
+TOURNAMENT_HAND_SIZES = [10, 15, 20]
 
 
 for i in range(len(TOURNAMENT_PLAYERS)):

@@ -16,7 +16,7 @@ from src.president import (
 )
 
 MOVE_COUNT = 217
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 MAX_PLAYERS = 4
 MIN_PLAYERS = 2
 RANK_COUNT = len(Rank)
