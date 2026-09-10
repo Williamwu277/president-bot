@@ -4,31 +4,14 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 
-from .encoder import MOVE_COUNT, STATE_SIZE
 from .generate_data import load_examples
+from .supervised_model import MODEL_PATH, SupervisedModel
 
-HIDDEN_SIZE = 256
 BATCH_SIZE = 256
 LEARNING_RATE = 1e-3
 EPOCH_COUNT = 30
 TRAINING_DATA_PATH = Path("data/test_train.pt")
 VALIDATION_DATA_PATH = Path("data/test_validation.pt")
-MODEL_PATH = Path("models/supervised_model.pt")
-
-
-class SupervisedModel(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.network = nn.Sequential(
-            nn.Linear(STATE_SIZE, HIDDEN_SIZE),
-            nn.ReLU(),
-            nn.Linear(HIDDEN_SIZE, HIDDEN_SIZE),
-            nn.ReLU(),
-            nn.Linear(HIDDEN_SIZE, MOVE_COUNT),
-        )
-
-    def forward(self, features: torch.Tensor) -> torch.Tensor:
-        return self.network(features)
 
 
 def make_data_loader(

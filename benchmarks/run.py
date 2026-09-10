@@ -4,6 +4,7 @@ import time
 from src.president import Hand, President, get_full_deck
 from src.strategies.minimal_card_bot import MinimalCardBot
 from src.strategies.minimax import minimax_solver
+from src.strategies.model_bot import ModelBot
 from src.strategies.random_bot import RandomBot
 
 SEED = 67
@@ -74,11 +75,15 @@ The tournament will be played with 10 cards each and then 20 cards.
 
 Restrictions: Can only calculate 2-player win-rates currently.
 
-RandomBot v.s. MinimalCardBot with 10 cards: 20.5% WR to 79.5% WR in 0.45s
-RandomBot v.s. MinimalCardBot with 20 cards: 8.6% WR to 91.4% WR in 1.35s
+RandomBot v.s. MinimalCardBot with 10 cards: 20.5% WR to 79.5% WR in 0.44s
+RandomBot v.s. MinimalCardBot with 20 cards: 8.6% WR to 91.4% WR in 1.34s
+RandomBot v.s. ModelBot with 10 cards: 24.0% WR to 76.0% WR in 2.08s
+RandomBot v.s. ModelBot with 20 cards: 7.7% WR to 92.3% WR in 3.83s
+MinimalCardBot v.s. ModelBot with 10 cards: 50.7% WR to 49.3% WR in 1.85s
+MinimalCardBot v.s. ModelBot with 20 cards: 50.5% WR to 49.5% WR in 3.66s
 """
 TOURNAMENT_GAME_COUNT = 1000
-TOURNAMENT_PLAYERS = [RandomBot, MinimalCardBot]
+TOURNAMENT_PLAYERS = [RandomBot, MinimalCardBot, ModelBot]
 TOURNAMENT_HAND_SIZES = [10, 20]
 
 

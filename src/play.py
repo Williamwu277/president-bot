@@ -4,6 +4,7 @@ from .president import President
 from .strategies.human_play import HumanPlayer
 from .strategies.minimal_card_bot import MinimalCardBot
 from .strategies.minimax import MinimaxBot
+from .strategies.model_bot import ModelBot
 from .strategies.random_bot import RandomBot
 
 MAX_BOTS = 3
@@ -12,6 +13,7 @@ strategy_registry = [
     (RandomBot, "Random Bot"),
     (MinimalCardBot, "Minimal Card Bot"),
     (MinimaxBot, "Minimax Bot"),
+    (ModelBot, "Model Bot"),
 ]
 
 
