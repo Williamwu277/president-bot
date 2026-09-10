@@ -81,6 +81,18 @@ RandomBot v.s. ModelBot with 10 cards: 24.0% WR to 76.0% WR in 2.08s
 RandomBot v.s. ModelBot with 20 cards: 7.7% WR to 92.3% WR in 3.83s
 MinimalCardBot v.s. ModelBot with 10 cards: 50.7% WR to 49.3% WR in 1.85s
 MinimalCardBot v.s. ModelBot with 20 cards: 50.5% WR to 49.5% WR in 3.66s
+
+Over 10000 games with hand sizes [10, 15, 20] without question 1 running first on the seed:
+
+RandomBot v.s. MinimalCardBot with 10 cards: 21.42% WR to 78.58% WR in 4.44s
+RandomBot v.s. MinimalCardBot with 15 cards: 12.84% WR to 87.16% WR in 8.3s
+RandomBot v.s. MinimalCardBot with 20 cards: 7.99% WR to 92.01% WR in 12.9s
+RandomBot v.s. ModelBot with 10 cards: 22.52% WR to 77.48% WR in 20.57s
+RandomBot v.s. ModelBot with 15 cards: 12.28% WR to 87.72% WR in 32.76s
+RandomBot v.s. ModelBot with 20 cards: 8.63% WR to 91.37% WR in 47.93s
+MinimalCardBot v.s. ModelBot with 10 cards: 50.56% WR to 49.44% WR in 24.29s
+MinimalCardBot v.s. ModelBot with 15 cards: 50.68% WR to 49.32% WR in 35.99s
+MinimalCardBot v.s. ModelBot with 20 cards: 51.08% WR to 48.92% WR in 46.77s
 """
 TOURNAMENT_GAME_COUNT = 1000
 TOURNAMENT_PLAYERS = [RandomBot, MinimalCardBot, ModelBot]

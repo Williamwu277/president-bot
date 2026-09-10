@@ -1,6 +1,6 @@
 from random import shuffle
 
-from .president import President
+from .president import FULL_DECK_SIZE, President
 from .strategies.human_play import HumanPlayer
 from .strategies.minimal_card_bot import MinimalCardBot
 from .strategies.minimax import MinimaxBot
@@ -39,16 +39,15 @@ def play_game():
         bot, name = strategy_registry[bot_id - 1]
         players.append(bot(f"{name}-{i}"))
 
-    shuffle_order = input("Shuffle player order? [y/n]: ")
-    if shuffle_order.lower() in ["y", "yes"]:
-        shuffle(players)
+    shuffle(players)
 
-    deck_count = int(input("Number of decks: "))
-    card_count = int(input("Number of cards per player: "))
+    max_card_count = FULL_DECK_SIZE // len(players)
+    card_count = int(input(f"Number of cards per player [1, {max_card_count}]: "))
 
-    game = President(
-        players=players, deck_count=deck_count, cards_per_player=card_count
-    )
+    if not 1 <= card_count <= max_card_count:
+        raise ValueError(f"Cards per player must be between 1 and {max_card_count}")
+
+    game = President(players=players, cards_per_player=card_count)
 
     standings = game.run()
     print("Final standings:")
