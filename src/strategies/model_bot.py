@@ -4,7 +4,10 @@ import torch
 
 from ..president import Move, Player, PlayerView
 from ..training.encoder import decode_move, encode_view
-from ..training.model import SUPERVISED_MODEL_PATH, load_playing_model
+from ..training.model import (
+    REINFORCEMENT_MODEL_PATH,
+    load_playing_model,
+)
 
 
 class ModelBot(Player):
@@ -12,7 +15,7 @@ class ModelBot(Player):
     Strategy using trained model inference to find the best move.
     """
 
-    def __init__(self, name: str, model_path: Path = SUPERVISED_MODEL_PATH):
+    def __init__(self, name: str, model_path: Path = REINFORCEMENT_MODEL_PATH):
         super().__init__(name)
         self.model = load_playing_model(model_path)
 

@@ -1,9 +1,8 @@
 import random
 import time
 
-from src.president import Hand, President, get_full_deck
+from src.president import President, get_full_deck
 from src.strategies.minimal_card_bot import MinimalCardBot
-from src.strategies.minimax import minimax_solver
 from src.strategies.model_bot import ModelBot
 from src.strategies.random_bot import RandomBot
 
@@ -25,6 +24,7 @@ For hand size 5: Original 63.3% WR (3.36s). Swapped hands 59.5% WR (3.43s).
 For hand size 7: Original 60.1% WR (31.23s). Swapped hands 61.1% WR (30.55s).
 For hand size 10: Original 59.0% WR (92.06s). Swapped hands 66.0% WR (87.83s).
 For hand size 12: Original 60.0% WR (246.35s). Swapped hands 60.0% WR (295.1s).
+"""
 """
 MINIMAX_GAME_COUNTS = [1000, 1000, 100, 10]
 MINIMAX_HAND_SIZES = [5, 7, 10, 12]
@@ -63,7 +63,7 @@ for hand_size, game_count in zip(MINIMAX_HAND_SIZES, MINIMAX_GAME_COUNTS):
     print(
         f"For hand size {hand_size}: Original {wr_1}% WR ({time_1}s). Swapped hands {wr_2}% WR ({time_2}s)."
     )
-
+"""
 
 """
 Second question: Given all the strategies, which one is the best?

@@ -37,13 +37,16 @@ def make_data_loader(
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
 
-def train_epoch(
+def run_epoch(
     model: PolicyValueModel,
     loader: DataLoader,
-    optimizer: torch.optim.Optimizer,
     device: torch.device,
+    *,
+    optimizer: torch.optim.Optimizer | None = None,
 ) -> TrainingMetrics:
-    model.train()
+    """Run one epoch, updating the model only when an optimizer is provided."""
+    training = optimizer is not None
+    model.train(training)
 
     total_combined_loss = 0.0
     total_policy_loss = 0.0
@@ -52,68 +55,15 @@ def train_epoch(
     total_value_direction_correct = 0
     total_examples = 0
 
-    for features, legal_moves, target_moves, outcomes in loader:
-        features = features.to(device)
-        legal_moves = legal_moves.to(device)
-        target_moves = target_moves.to(device)
-        outcomes = outcomes.to(device)
-
-        policy_logits, predicted_values = model(features)
-
-        masked_logits = policy_logits.masked_fill(
-            ~legal_moves,
-            torch.finfo(policy_logits.dtype).min,
-        )
-
-        policy_loss = nn.functional.cross_entropy(masked_logits, target_moves)
-        value_loss = nn.functional.mse_loss(predicted_values, outcomes)
-        combined_loss = policy_loss + VALUE_LOSS_WEIGHT * value_loss
-
-        optimizer.zero_grad()
-        combined_loss.backward()
-        optimizer.step()
-
-        batch_size = features.shape[0]
-        total_combined_loss += combined_loss.item() * batch_size
-        total_policy_loss += policy_loss.item() * batch_size
-        total_value_loss += value_loss.item() * batch_size
-        total_policy_correct += (
-            (masked_logits.argmax(dim=1) == target_moves).sum().item()
-        )
-        total_value_direction_correct += (
-            ((predicted_values > 0) == (outcomes > 0)).sum().item()
-        )
-        total_examples += batch_size
-
-    return TrainingMetrics(
-        combined_loss=total_combined_loss / total_examples,
-        policy_loss=total_policy_loss / total_examples,
-        value_loss=total_value_loss / total_examples,
-        policy_accuracy=total_policy_correct / total_examples,
-        value_direction_accuracy=total_value_direction_correct / total_examples,
-    )
-
-
-def evaluate(
-    model: PolicyValueModel,
-    loader: DataLoader,
-    device: torch.device,
-) -> TrainingMetrics:
-    model.eval()
-
-    total_combined_loss = 0.0
-    total_policy_loss = 0.0
-    total_value_loss = 0.0
-    total_policy_correct = 0
-    total_value_direction_correct = 0
-    total_examples = 0
-
-    with torch.no_grad():
+    with torch.set_grad_enabled(training):
         for features, legal_moves, target_moves, outcomes in loader:
             features = features.to(device)
             legal_moves = legal_moves.to(device)
             target_moves = target_moves.to(device)
             outcomes = outcomes.to(device)
+
+            if optimizer is not None:
+                optimizer.zero_grad()
 
             policy_logits, predicted_values = model(features)
 
@@ -125,6 +75,10 @@ def evaluate(
             policy_loss = nn.functional.cross_entropy(masked_logits, target_moves)
             value_loss = nn.functional.mse_loss(predicted_values, outcomes)
             combined_loss = policy_loss + VALUE_LOSS_WEIGHT * value_loss
+
+            if optimizer is not None:
+                combined_loss.backward()
+                optimizer.step()
 
             batch_size = features.shape[0]
             total_combined_loss += combined_loss.item() * batch_size
@@ -171,14 +125,14 @@ def train() -> None:
     best_validation_loss = float("inf")
 
     for epoch in range(EPOCH_COUNT):
-        train_metrics = train_epoch(
+        train_metrics = run_epoch(
             model,
             train_loader,
-            optimizer,
             device,
+            optimizer=optimizer,
         )
 
-        validation_metrics = evaluate(
+        validation_metrics = run_epoch(
             model,
             validation_loader,
             device,

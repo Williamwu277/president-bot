@@ -8,6 +8,7 @@ from .encoder import MOVE_COUNT, STATE_SIZE
 
 HIDDEN_SIZE = 256
 SUPERVISED_MODEL_PATH = Path("models/supervised_model.pt")
+REINFORCEMENT_MODEL_PATH = Path("models/reinforcement_model.pt")
 
 
 class PolicyValueModel(nn.Module):
