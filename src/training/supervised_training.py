@@ -6,7 +6,7 @@ from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 
 from .generate_data import load_examples
-from .model import SUPERVISED_MODEL_PATH, PolicyValueModel
+from .model import PolicyValueModel
 
 BATCH_SIZE = 256
 LEARNING_RATE = 1e-3
@@ -14,6 +14,7 @@ EPOCH_COUNT = 30
 VALUE_LOSS_WEIGHT = 0.5
 TRAINING_DATA_PATH = Path("data/training_data.pt")
 VALIDATION_DATA_PATH = Path("data/validation_data.pt")
+MODEL_PATH = Path("models/supervised_model.pt")
 
 
 @dataclass(frozen=True)
@@ -157,8 +158,8 @@ def train() -> None:
 
         if validation_metrics.combined_loss < best_validation_loss:
             best_validation_loss = validation_metrics.combined_loss
-            SUPERVISED_MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
-            torch.save(model.state_dict(), SUPERVISED_MODEL_PATH)
+            MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+            torch.save(model.state_dict(), MODEL_PATH)
 
 
 if __name__ == "__main__":

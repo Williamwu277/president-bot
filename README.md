@@ -11,7 +11,7 @@ Ever since I was young, President—or at least some variation of it—has been 
 
 ## Findings
 
-TBD—no novel model trained just yet ... So far I've only created a model that imitates the `minimal_card_bot`. You can read the benchmarks in `benchmarks.run`, which uses seed `67`, to get an idea of the methodology but here is the summary:
+You can read the benchmarks in `benchmarks.run`, which uses seed `73`, to get an idea of the methodology. Here is the summary:
 
 ### First-player advantage
 
@@ -21,35 +21,44 @@ won approximately 60% of games.
 
 | Cards per player | Deals tested | Games solved | First-player WR (original) | First-player WR (swapped) |
 | ---: | ---: | ---: | ---: | ---: |
-| 5 | 1,000 | 2,000 | 63.3% | 59.5% |
-| 7 | 1,000 | 2,000 | 60.1% | 61.1% |
-| 10 | 100 | 200 | 59.0% | 66.0% |
-| 12 | 10 | 20 | 60.0% | 60.0% |
+| 5 | 1,000 | 2,000 | 60.3% | 61.8% |
+| 7 | 1,000 | 2,000 | 60.0% | 62.1% |
+| 10 | 100 | 200 | 61.0% | 69.0% |
 
 The larger-hand results use fewer deals because the exact minimax solver becomes
 substantially slower as the number of cards increases.
 
-### Bot tournament
+### Models
 
-Each row contains 10,000 two-player games. Every generated pair of hands was
-played with both seating orders and with the hands swapped to balance first-player
-and hand-quality advantages.
+* **Copycat-v1.0**: A model trained on the outputs of MinimalCardBot (which is a heuristic that mostly picks the smallest move each turn)
+* **Jester-v1.0**: A model trained through self-play from random weights to beat the MinimalCardBot heuristic over 640,000 games
+* **Jester-v1.1**: A model trained through self-play from the Copycat-v1.0 weights to beat both MinimalCardBot and Jester-v1.0 over 1,920,000 games
 
-| Matchup | Cards per player | First bot win rate | Second bot win rate | Runtime |
-| --- | ---: | ---: | ---: | ---: |
-| RandomBot vs. MinimalCardBot | 10 | 21.42% | 78.58% | 4.44s |
-| RandomBot vs. MinimalCardBot | 15 | 12.84% | 87.16% | 8.30s |
-| RandomBot vs. MinimalCardBot | 20 | 7.99% | 92.01% | 12.90s |
-| RandomBot vs. ModelBot | 10 | 22.52% | 77.48% | 20.57s |
-| RandomBot vs. ModelBot | 15 | 12.28% | 87.72% | 32.76s |
-| RandomBot vs. ModelBot | 20 | 8.63% | 91.37% | 47.93s |
-| MinimalCardBot vs. ModelBot | 10 | 50.56% | 49.44% | 24.29s |
-| MinimalCardBot vs. ModelBot | 15 | 50.68% | 49.32% | 35.99s |
-| MinimalCardBot vs. ModelBot | 20 | 51.08% | 48.92% | 46.77s |
+###  Pairwise Bot tournament
 
-The imitation-trained ModelBot performs approximately as well as its
-MinimalCardBot teacher. Both substantially outperform RandomBot, especially as
-the number of cards increases.
+Each matchup at each hand size contains 2,000 two-player games. Every generated
+pair of hands was played with both seating orders and with the hands swapped to
+balance first-player and hand-quality advantages.
+
+Each cell contains the **row model's win rate against the column model**, ordered
+by **5 / 10 / 15 / 20 / 25 cards per player**.
+
+| Y-axis ↓ / X-axis → | RandomBot | MinimalCardBot | Copycat-v1.0 | Jester-v1.0 | Jester-v1.1 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| **RandomBot** | — | 38.70 / 22.60 / 10.85 / 7.60 / 6.35% | 37.25 / 19.95 / 12.60 / 7.90 / 6.45% | 37.40 / 21.45 / 12.00 / 7.65 / 5.70% | 37.40 / 20.65 / 11.10 / 8.45 / 6.45% |
+| **MinimalCardBot** | 61.30 / 77.40 / 89.15 / 92.40 / 93.65% | — | 50.05 / 50.00 / 49.95 / 49.80 / 49.70% | 48.35 / 46.45 / 45.35 / 45.00 / 42.00% | 48.10 / 46.55 / 44.75 / 43.05 / 37.60% |
+| **Copycat-v1.0** | 62.75 / 80.05 / 87.40 / 92.10 / 93.55% | 49.95 / 50.00 / 50.05 / 50.20 / 50.30% | — | 47.70 / 46.55 / 44.90 / 44.10 / 43.25% | 48.45 / 46.65 / 43.05 / 44.40 / 38.25% |
+| **Jester-v1.0** | 62.60 / 78.55 / 88.00 / 92.35 / 94.30% | 51.65 / 53.55 / 54.65 / 55.00 / 58.00% | 52.30 / 53.45 / 55.10 / 55.90 / 56.75% | — | 50.30 / 48.50 / 49.30 / 47.25 / 47.80% |
+| **Jester-v1.1** | 62.60 / 79.35 / 88.90 / 91.55 / 93.55% | 51.90 / 53.45 / 55.25 / 56.95 / 62.40% | 51.55 / 53.35 / 56.95 / 55.60 / 61.75% | 49.70 / 51.50 / 50.70 / 52.75 / 52.20% | — |
+
+Copycat-v1.0 performs approximately as well as its MinimalCardBot teacher. Both
+Jester versions increasingly outperform Copycat-v1.0 and MinimalCardBot as hand
+size grows, while Jester-v1.1 holds a small advantage over Jester-v1.0 in most
+hand sizes.
+
+### Generalizing to Four Players
+
+Interestingly, all the Jester models can play decently well in 4 players even though they were exclusively trained on 2 player games.
 
 ## Rules
 
@@ -110,8 +119,11 @@ python -m src.play
 To run the benchmarks:
 
 ```bash
-python -m benchmarks.run
+python -m benchmarks.run [command]
 ```
+
+* `-WR` for the winrate benchmark
+* `-T` for the pairwise tournament
 
 To train a model: 
 
@@ -122,3 +134,5 @@ To train a model:
 python -m src.training.generate_data
 python -m src.training.supervised_training
 ```
+
+3. For reinforcement learning, modify the `src.training.reinforcement_learning` script with the base model and output path. Then call the command

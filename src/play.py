@@ -1,19 +1,16 @@
 from random import shuffle
 
 from .president import FULL_DECK_SIZE, President
-from .strategies.human_play import HumanPlayer
-from .strategies.minimal_card_bot import MinimalCardBot
-from .strategies.minimax import MinimaxBot
-from .strategies.model_bot import ModelBot
-from .strategies.random_bot import RandomBot
+from .strategies.registry import Strategy, create_player
 
 MAX_BOTS = 3
 
 strategy_registry = [
-    (RandomBot, "Random Bot"),
-    (MinimalCardBot, "Minimal Card Bot"),
-    (MinimaxBot, "Minimax Bot"),
-    (ModelBot, "Model Bot"),
+    Strategy.RANDOM,
+    Strategy.MINIMAL_CARD,
+    Strategy.COPYCAT_V1_0,
+    Strategy.JESTER_V1_0,
+    Strategy.JESTER_V1_1,
 ]
 
 
@@ -24,11 +21,11 @@ def play_game():
         raise ValueError("Invalid scenario")
 
     print(f"We currently have a registry of {len(strategy_registry)} bot types:")
-    for bot_id, (_, bot_name) in enumerate(strategy_registry, start=1):
-        print(f"{bot_id}: {bot_name}")
+    for bot_id, bot_type in enumerate(strategy_registry, start=1):
+        print(f"{bot_id}: {bot_type!s}")
     print("Please pick the id of the bots you want to play against one per line:")
 
-    players = [HumanPlayer("Human Player")]
+    players = [create_player(Strategy.HUMAN, "Human Player")]
 
     for i in range(1, bot_count + 1):
         bot_id = int(input(f"Bot {i}: "))
@@ -36,8 +33,8 @@ def play_game():
         if bot_id < 1 or bot_id > len(strategy_registry):
             raise ValueError("Invalid scenario")
 
-        bot, name = strategy_registry[bot_id - 1]
-        players.append(bot(f"{name}-{i}"))
+        bot_type = strategy_registry[bot_id - 1]
+        players.append(create_player(bot_type, f"{bot_type!s}-{i}"))
 
     shuffle(players)
 

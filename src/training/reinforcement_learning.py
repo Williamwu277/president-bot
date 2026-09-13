@@ -6,19 +6,17 @@ import torch
 import torch.nn.functional as F
 
 from ..president import Move, Player, PlayerView, President
-from ..strategies.minimal_card_bot import MinimalCardBot
-from ..strategies.model_bot import ModelBot
-from ..strategies.random_bot import RandomBot
+from ..strategies.registry import Strategy, create_player
 from .encoder import decode_move, encode_view
-from .generate_data import PlayerArgs
-from .model import SUPERVISED_MODEL_PATH, PolicyValueModel
+from .model import PolicyValueModel
 
-BATCH_COUNT = 500
+BATCH_COUNT = 30000
 GAMES_PER_BATCH = 64
 LEARNING_RATE = 1e-4
-SELF_PLAY_FRACTION = 0.7
-POLICY_TEMPERATURE = 1.25
-REINFORCEMENT_MODEL_PATH = Path("models/reinforcement_model.pt")
+SELF_PLAY_FRACTION = 0.6
+UNIFORM_EXPLORATION_FRACTION = 0.1
+INITIAL_MODEL_PATH = Path("models/supervised_model.pt")
+OUTPUT_MODEL_PATH = Path("models/reinforcement_model_supervised_base.pt")
 
 
 @dataclass
@@ -41,12 +39,26 @@ def make_policy_distribution(
     policy_logits: torch.Tensor,
     legal_moves: torch.Tensor,
 ) -> torch.distributions.Categorical:
-    scaled_logits = policy_logits / POLICY_TEMPERATURE
-    masked_logits = scaled_logits.masked_fill(
+    """
+    The function masks illegal moves, converts the remaining logits to probabilities
+    and mixes in a 10% uniform exploration probability.
+    """
+    masked_logits = policy_logits.masked_fill(
         ~legal_moves,
-        torch.finfo(scaled_logits.dtype).min,
+        torch.finfo(policy_logits.dtype).min,
     )
-    return torch.distributions.Categorical(logits=masked_logits)
+    policy_probabilities = masked_logits.softmax(dim=-1)
+
+    legal_move_weights = legal_moves.to(dtype=policy_logits.dtype)
+    uniform_probabilities = legal_move_weights / legal_move_weights.sum(
+        dim=-1,
+        keepdim=True,
+    ).clamp_min(1)
+
+    probabilities = (
+        1 - UNIFORM_EXPLORATION_FRACTION
+    ) * policy_probabilities + UNIFORM_EXPLORATION_FRACTION * uniform_probabilities
+    return torch.distributions.Categorical(probs=probabilities)
 
 
 class SelfPlayRecorder(Player):
@@ -124,11 +136,8 @@ def train_on_records(
 def train(
     batch_count: int,
     games_per_batch: int,
-    opponent_types: list[PlayerArgs],
+    opponent_types: list[Strategy],
     hand_sizes: list[int],
-    *,
-    initial_model_path: Path,
-    output_model_path: Path,
 ) -> None:
     if torch.backends.mps.is_available():
         training_device = torch.device("mps")
@@ -140,13 +149,14 @@ def train(
     print(f"Training on {training_device}")
 
     training_model = PolicyValueModel().to(training_device)
+
     state_dict = torch.load(
-        initial_model_path,
+        INITIAL_MODEL_PATH,
         map_location="cpu",
         weights_only=True,
     )
     training_model.load_state_dict(state_dict)
-    print(f"Loaded initial policy from {initial_model_path}")
+    print(f"Loaded initial policy from {INITIAL_MODEL_PATH}")
 
     inference_model = PolicyValueModel().cpu()
     inference_model.eval()
@@ -154,7 +164,7 @@ def train(
 
     optimizer = torch.optim.AdamW(training_model.parameters(), lr=LEARNING_RATE)
 
-    output_model_path.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT_MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     for batch_id in range(batch_count):
         batch_data: list[SelfPlayRecord] = []
@@ -185,8 +195,8 @@ def train(
                 recording_player = SelfPlayRecorder(
                     name="Policy", data=[], model=inference_model
                 )
-                opponent_type, opponent_args = choice(opponent_types)
-                opponent = opponent_type(*opponent_args)
+                opponent_type = choice(opponent_types)
+                opponent = create_player(opponent_type, "")
 
                 recording_players = [recording_player]
                 players = [recording_player, opponent]
@@ -224,7 +234,7 @@ def train(
             f"entropy: {results.entropy:.4f}"
         )
 
-        torch.save(training_model.state_dict(), output_model_path)
+        torch.save(training_model.state_dict(), OUTPUT_MODEL_PATH)
 
 
 if __name__ == "__main__":
@@ -232,11 +242,9 @@ if __name__ == "__main__":
         batch_count=BATCH_COUNT,
         games_per_batch=GAMES_PER_BATCH,
         opponent_types=[
-            (RandomBot, ("",)),
-            (MinimalCardBot, ("",)),
-            (ModelBot, ("", SUPERVISED_MODEL_PATH)),
+            Strategy.MINIMAL_CARD,
+            Strategy.COPYCAT_V1_0,
+            Strategy.JESTER_V1_1,
         ],
         hand_sizes=[10, 15, 20, 26],
-        initial_model_path=SUPERVISED_MODEL_PATH,
-        output_model_path=REINFORCEMENT_MODEL_PATH,
     )
