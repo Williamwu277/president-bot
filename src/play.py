@@ -1,6 +1,8 @@
+import sys
 from random import shuffle
 
 from .president import FULL_DECK_SIZE, President
+from .strategies.human_play import HumanPlayer
 from .strategies.registry import Strategy, create_player
 
 MAX_BOTS = 3
@@ -23,7 +25,7 @@ def durable_input(prompt: str, start: int, end: int) -> int:
             print("Invalid input")
 
 
-def play_game():
+def play_game(debug: bool = False):
     bot_count = durable_input("Number of bots [1, 3]: ", 1, 3)
 
     print(f"We currently have a registry of {len(strategy_registry)} bot types:")
@@ -31,7 +33,7 @@ def play_game():
         print(f"{bot_id}: {bot_type!s}")
     print("Please pick the id of the bots you want to play against one per line:")
 
-    players = [create_player(Strategy.HUMAN, "Human Player")]
+    players = [HumanPlayer("Human Player", advisor=debug)]
 
     for i in range(1, bot_count + 1):
         bot_id = durable_input(f"Bot {i}: ", 1, len(strategy_registry))
@@ -54,4 +56,4 @@ def play_game():
 
 
 if __name__ == "__main__":
-    play_game()
+    play_game(debug="-D" in sys.argv[1:])

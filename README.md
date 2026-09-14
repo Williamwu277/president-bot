@@ -117,6 +117,13 @@ To play with the bots on CLI:
 python -m src.play
 ```
 
+Add `-D` to show Jester-v1.1's top five recommended moves and probabilities on
+each human turn:
+
+```bash
+python -m src.play -D
+```
+
 To run the benchmarks:
 
 ```bash
