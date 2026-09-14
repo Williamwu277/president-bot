@@ -17,13 +17,14 @@ You can read the benchmarks in `benchmarks.run`, which uses seed `73`, to get an
 
 The minimax solver played each deal twice, swapping the hands while keeping the
 same player first. With optimal play and perfect information, the first player
-won approximately 60% of games.
+won approximately 61% of games.
 
-| Cards per player | Deals tested | Games solved | First-player WR (original) | First-player WR (swapped) |
-| ---: | ---: | ---: | ---: | ---: |
-| 5 | 1,000 | 2,000 | 60.3% | 61.8% |
-| 7 | 1,000 | 2,000 | 60.0% | 62.1% |
-| 10 | 100 | 200 | 61.0% | 69.0% |
+| Cards per player | Deals tested | Games solved | First-player WR (original) | First-player WR (swapped) | Runtime (original) | Runtime (swapped) |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 5 | 10,000 | 20,000 | 61.53% | 61.92% | 1.78s | 1.73s |
+| 7 | 10,000 | 20,000 | 60.82% | 60.68% | 11.40s | 10.87s |
+| 10 | 1,000 | 2,000 | 60.60% | 62.70% | 21.20s | 20.30s |
+| 12 | 1,000 | 2,000 | 58.10% | 64.10% | 225.45s | 214.30s |
 
 The larger-hand results use fewer deals because the exact minimax solver becomes
 substantially slower as the number of cards increases.

@@ -22,7 +22,7 @@ random.seed(SEED)
 """
 First question: Just how strong is advantage in playing first?
 
-Methodology: At each hand size of 5, 7, 10, 12, generate hand_1 and hand_2
+Methodology: At each hand size of 5, 7, 10, and 12, generate hand_1 and hand_2
 and have the minimax 2-player solver solve it. Calculate the win rate of the player 
 playing first with hand1 and then hand2.
 
