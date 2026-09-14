@@ -12,7 +12,7 @@ import time
 from sys import argv
 
 from src.president import Hand, President, get_full_deck
-from src.strategies.minimax import minimax_solver
+from src.strategies.fast_minimax import solve_game
 from src.strategies.registry import Strategy, create_player
 
 SEED = 73
@@ -22,19 +22,20 @@ random.seed(SEED)
 """
 First question: Just how strong is advantage in playing first?
 
-Methodology: At each hand size of 5, 7, and 10, generate hand_1 and hand_2
+Methodology: At each hand size of 5, 7, 10, 12, generate hand_1 and hand_2
 and have the minimax 2-player solver solve it. Calculate the win rate of the player 
 playing first with hand1 and then hand2.
 
 Restrictions: Can only solve 2-player optimally with perfect information
 and a smaller hand size.
 
-For hand size 5: Original 60.3% WR (3.46s). Swapped hands 61.8% WR (3.38s).
-For hand size 7: Original 60.0% WR (33.12s). Swapped hands 62.1% WR (31.78s).
-For hand size 10: Original 61.0% WR (126.85s). Swapped hands 69.0% WR (130.29s).
+For hand size 5: Original 61.53% WR (1.78s). Swapped hands 61.92% WR (1.73s).
+For hand size 7: Original 60.82% WR (11.4s). Swapped hands 60.68% WR (10.87s).
+For hand size 10: Original 60.6% WR (21.2s). Swapped hands 62.7% WR (20.3s).
+For hand size 12: Original 58.1% WR (225.45s). Swapped hands 64.1% WR (214.3s).
 """
-MINIMAX_GAME_COUNTS = [1000, 1000, 100]
-MINIMAX_HAND_SIZES = [5, 7, 10]
+MINIMAX_GAME_COUNTS = [10000, 10000, 1000, 1000]
+MINIMAX_HAND_SIZES = [5, 7, 10, 12]
 
 
 def run_winrate_benchmark():
@@ -50,9 +51,9 @@ def run_winrate_benchmark():
             )
 
             start_time = time.perf_counter()
-            result = minimax_solver({}, Hand(hand_1), Hand(hand_2), None)
+            result = solve_game(Hand(hand_1), Hand(hand_2))
             checkpoint = time.perf_counter()
-            result_2 = minimax_solver({}, Hand(hand_2), Hand(hand_1), None)
+            result_2 = solve_game(Hand(hand_2), Hand(hand_1))
             checkpoint_2 = time.perf_counter()
 
             if result:
