@@ -6,4 +6,3 @@ env
 .ruff_cache
 data
 models
-final_models
