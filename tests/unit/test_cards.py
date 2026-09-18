@@ -1,6 +1,6 @@
 import pytest
 
-from src.president import Card, Rank, Suit
+from president_ai.president import Card, Rank, Suit
 
 
 @pytest.mark.parametrize(

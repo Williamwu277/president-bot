@@ -1,10 +1,9 @@
-from pathlib import Path
-
+from ..paths import FINAL_MODELS_DIR
 from ..president import Move, Player, PlayerView
 from ..training.model import load_playing_model
 from .model_bot import analyze_view
 
-ADVISOR_MODEL_PATH = Path("final_models/reinforcement_model_supervised_base_30k.pt")
+ADVISOR_MODEL_PATH = FINAL_MODELS_DIR / "reinforcement_model_supervised_base_30k.pt"
 
 
 class HumanPlayer(Player):

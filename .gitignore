@@ -6,3 +6,6 @@ env
 .ruff_cache
 data
 models
+build/
+dist/
+*.egg-info/

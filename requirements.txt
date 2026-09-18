@@ -1,4 +1,1 @@
-pytest
-pre-commit
-torch
-numpy<2
+-e .[dev]

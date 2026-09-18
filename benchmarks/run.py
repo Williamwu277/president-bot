@@ -11,9 +11,9 @@ import random
 import time
 from sys import argv
 
-from src.president import Hand, President, get_full_deck
-from src.strategies.fast_minimax import solve_game
-from src.strategies.registry import Strategy, create_player
+from president_ai.president import Hand, President, get_full_deck
+from president_ai.strategies.fast_minimax import solve_game
+from president_ai.strategies.registry import Strategy, create_player
 
 SEED = 73
 random.seed(SEED)

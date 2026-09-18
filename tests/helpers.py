@@ -1,4 +1,4 @@
-from src.president import Card, Move, MoveType, Player, PlayerView, Rank, Suit
+from president_ai.president import Card, Move, MoveType, Player, PlayerView, Rank, Suit
 
 
 class ScriptedPlayer(Player):

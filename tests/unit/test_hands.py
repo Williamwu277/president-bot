@@ -1,6 +1,6 @@
 import pytest
 
-from src.president import Card, Hand, Move, MoveType, Rank, Suit
+from president_ai.president import Card, Hand, Move, MoveType, Rank, Suit
 from tests.helpers import (
     get_move_keys,
     make_cards,

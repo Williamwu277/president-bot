@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "president-ai"
+version = "0.1.0"
+description = "President card game engine and playing strategies"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["torch", "numpy<2"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pre-commit"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+president_ai = ["final_models/*.pt"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

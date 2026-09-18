@@ -1,6 +1,6 @@
 import pytest
 
-from src.president import Move, President, Rank, TurnRecord
+from president_ai.president import Move, President, Rank, TurnRecord
 from tests.helpers import ScriptedPlayer, make_cards
 
 

@@ -1,6 +1,6 @@
 import pytest
 
-from src.president import Card, Move, MoveType, Rank, Suit
+from president_ai.president import Card, Move, MoveType, Rank, Suit
 from tests.helpers import make_cards, make_sequence
 
 SINGLE_SM = make_cards(Rank.THREE, 1)

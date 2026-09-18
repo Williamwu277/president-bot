@@ -1,5 +1,5 @@
-from src.president import President, Rank
-from src.strategies.minimal_card_bot import MinimalCardBot
+from president_ai.president import President, Rank
+from president_ai.strategies.minimal_card_bot import MinimalCardBot
 from tests.helpers import make_cards
 
 

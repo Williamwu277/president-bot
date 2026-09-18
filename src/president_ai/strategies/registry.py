@@ -1,6 +1,6 @@
 from enum import Enum
-from pathlib import Path
 
+from ..paths import FINAL_MODELS_DIR
 from ..president import Player
 from .human_play import HumanPlayer
 from .minimal_card_bot import MinimalCardBot
@@ -27,10 +27,10 @@ class Strategy(Enum):
 
 
 MODEL_MAP = {
-    Strategy.COPYCAT_V1_0: Path("final_models/supervised_model.pt"),
-    Strategy.JESTER_V1_0: Path("final_models/reinforcement_model_10k.pt"),
-    Strategy.JESTER_V1_1: Path(
-        "final_models/reinforcement_model_supervised_base_30k.pt"
+    Strategy.COPYCAT_V1_0: FINAL_MODELS_DIR / "supervised_model.pt",
+    Strategy.JESTER_V1_0: FINAL_MODELS_DIR / "reinforcement_model_10k.pt",
+    Strategy.JESTER_V1_1: (
+        FINAL_MODELS_DIR / "reinforcement_model_supervised_base_30k.pt"
     ),
 }
 

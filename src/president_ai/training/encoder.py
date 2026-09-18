@@ -2,7 +2,7 @@ from collections import defaultdict
 
 import torch
 
-from src.president import (
+from ..president import (
     FULL_DECK_SIZE,
     Card,
     Hand,

@@ -95,36 +95,62 @@ Game-play:
 
 ## Setup
 
-1. Setup the virtual environment
-2. Install the requirements
-3. Set up `pre-commit`
+1. Set up a virtual environment.
+2. Install the package and development tools.
+3. Set up `pre-commit`.
 
 ```bash
 python3.12 -m venv env
 source env/bin/activate
-pip install -r requirements.txt
+python -m pip install -e '.[dev]'
 pre-commit install
 pre-commit run --all-files
 ```
 
+To use President AI in another Python project, install it into that project's
+virtual environment from a local checkout or directly from GitHub:
+
+```bash
+python -m pip install -e /path/to/president-bot
+# Or install a specific Git tag or commit for reproducibility:
+python -m pip install 'president-ai @ git+https://github.com/Williamwu277/PresidentAI.git@<tag-or-commit>'
+```
+
+Then import its public modules:
+
+```python
+from president_ai.president import President
+from president_ai.strategies.registry import Strategy, create_player
+
+players = [
+    create_player(Strategy.JESTER_V1_1, "Jester"),
+    create_player(Strategy.MINIMAL_CARD, "Minimal Bot"),
+]
+game = President(players, cards_per_player=13)
+standings = game.run()
+```
+
+The three trained model files are included in the installed package, so model
+strategies work regardless of the current working directory.
+
 ## Operation
 
-Run from repository root.
+Run the game CLI from any directory after installation.
 
 To play with the bots on CLI:
 
 ```bash
-python -m src.play
+python -m president_ai.play
 ```
 
 Add `-D` to show Jester-v1.1's top five recommended moves and probabilities on
 each human turn:
 
 ```bash
-python -m src.play -D
+python -m president_ai.play -D
 ```
 
-To run the benchmarks:
+To run the benchmarks from the repository root:
 
 ```bash
 python -m benchmarks.run [command]
@@ -135,12 +161,20 @@ python -m benchmarks.run [command]
 
 To train a model: 
 
-1. Go to `src.training.generate_data` and modify the training set parameters list to generate training and validation data. 
-2. Then run the training script in `src.training.supervised_training` with the correct file names in the script.
+1. Go to `president_ai.training.generate_data` and modify the training set parameters list to generate training and validation data.
+2. Then run the training script in `president_ai.training.supervised_training` with the correct file names in the script.
 
 ```bash
-python -m src.training.generate_data
-python -m src.training.supervised_training
+python -m president_ai.training.generate_data
+python -m president_ai.training.supervised_training
 ```
 
-3. For reinforcement learning, modify the `src.training.reinforcement_learning` script with the base model and output path. Then call the command
+3. For reinforcement learning, modify the `president_ai.training.reinforcement_learning` script with the base model and output path. Then call the command
+
+```bash
+python -m president_ai.training.reinforcement_learning
+```
+
+Training scripts read and write `data/` and `models/` in the current working
+directory. Run them from the repository root if you want to use the existing
+project folders.

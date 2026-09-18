@@ -1,7 +1,14 @@
 import pytest
 
-from src.president import Hand, Move, PlayerView, Rank, TurnRecord, get_full_deck
-from src.training.encoder import (
+from president_ai.president import (
+    Hand,
+    Move,
+    PlayerView,
+    Rank,
+    TurnRecord,
+    get_full_deck,
+)
+from president_ai.training.encoder import (
     MOVE_COUNT,
     OPPONENT_SLOT_SIZE,
     decode_move,
