@@ -320,6 +320,20 @@ class PlayerState:
     hand: Hand
 
 
+@dataclass(frozen=True)
+class PresidentState:
+    """Immutable snapshot of the state required to resume a game."""
+
+    hands: tuple[tuple[Card, ...], ...]
+    turn_order: tuple[PlayerId, ...]
+    standings: tuple[PlayerId, ...]
+    trick_history: tuple[tuple[TurnRecord, ...], ...]
+    current_trick: tuple[TurnRecord, ...]
+    current_move: Move | None
+    last_player_to_play: PlayerId | None
+    passed_players: frozenset[PlayerId]
+
+
 class President:
     """
     Run a game of President and coordinate player turns.
@@ -375,16 +389,65 @@ class President:
         for player_id, (controller, hand) in enumerate(zip(players, hands)):
             self.players[player_id] = PlayerState(player_id, controller, hand)
 
-    def next_turn(self) -> TurnRecord:
-        """
-        Simulate one turn.
-        """
+    @classmethod
+    def from_state(
+        cls,
+        players: list[Player],
+        state: PresidentState,
+    ) -> "President":
+        """Restore a game snapshot with the supplied player controllers."""
+        player_ids = set(range(len(players)))
+        active_player_ids = set(state.turn_order)
+        finished_player_ids = set(state.standings)
+
+        if len(state.hands) != len(players):
+            raise ValueError("Each Player Needs a Hand")
+        if (
+            len(active_player_ids) != len(state.turn_order)
+            or len(finished_player_ids) != len(state.standings)
+            or active_player_ids & finished_player_ids
+            or active_player_ids | finished_player_ids != player_ids
+        ):
+            raise ValueError("Invalid Player State")
+        if not state.passed_players <= active_player_ids:
+            raise ValueError("Invalid Passed Players")
+
+        game = cls(players, initial_hands=[list(hand) for hand in state.hands])
+        game.turn_order = deque(state.turn_order)
+        game.standings = list(state.standings)
+        game.trick_history = list(state.trick_history)
+        game.current_trick = list(state.current_trick)
+        game.current_move = state.current_move
+        game.last_player_to_play = state.last_player_to_play
+        game.passed_players = set(state.passed_players)
+        return game
+
+    def snapshot(self) -> PresidentState:
+        """Return an immutable snapshot that can independently restore the game."""
+        return PresidentState(
+            hands=tuple(
+                tuple(self.players[player_id].hand.cards)
+                for player_id in range(len(self.players))
+            ),
+            turn_order=tuple(self.turn_order),
+            standings=tuple(self.standings),
+            trick_history=tuple(self.trick_history),
+            current_trick=tuple(self.current_trick),
+            current_move=self.current_move,
+            last_player_to_play=self.last_player_to_play,
+            passed_players=frozenset(self.passed_players),
+        )
+
+    def get_player_view(self) -> PlayerView:
+        """Return the current player's view without asking them to make a move."""
+        if not self.turn_order:
+            raise ValueError("Game Is Over")
 
         player_id = self.turn_order[0]
         player = self.players[player_id]
         possible_moves = tuple(player.hand.get_possible_moves(self.current_move))
 
-        view = PlayerView(
+        return PlayerView(
             player_id=player_id,
             hand=tuple(player.hand.cards),
             turn_order=tuple(self.turn_order),
@@ -398,14 +461,18 @@ class President:
             possible_moves=possible_moves,
         )
 
-        move = player.controller.make_move(view)
+    def play_move(self, move: Move | None) -> TurnRecord:
+        """Validate and apply a move for the current player."""
+        view = self.get_player_view()
+        player_id = view.player_id
+        player = self.players[player_id]
 
         # Move validation
         if move is None:
             if self.current_move is None:
                 raise ValueError("Cannot Pass When Starting a Trick")
             self.passed_players.add(player_id)
-        elif move in possible_moves:
+        elif move in view.possible_moves:
             player.hand.remove_cards(move)
             self.current_move = move
             self.last_player_to_play = player_id
@@ -440,6 +507,15 @@ class President:
             self.passed_players.clear()
 
         return turn_record
+
+    def next_turn(self) -> TurnRecord:
+        """
+        Simulate one turn.
+        """
+        view = self.get_player_view()
+        player = self.players[view.player_id]
+        move = player.controller.make_move(view)
+        return self.play_move(move)
 
     def run(self) -> list[str]:
         """

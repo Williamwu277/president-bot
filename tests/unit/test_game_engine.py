@@ -50,6 +50,61 @@ def test_next_turn():
     assert players[0].views[0].cards_remaining == (2, 1)
 
 
+def test_get_player_view_and_play_move():
+    three = make_cards(Rank.THREE, 1)[0]
+    five = make_cards(Rank.FIVE, 1)[0]
+    move = Move((three,))
+    players = [ScriptedPlayer("Player 0"), ScriptedPlayer("Player 1")]
+    game = President(players, initial_hands=[[three, five], make_cards(Rank.FOUR, 1)])
+
+    view = game.get_player_view()
+    turn = game.play_move(move)
+
+    assert view.player_id == 0
+    assert view.hand == (three, five)
+    assert move in view.possible_moves
+    assert turn == TurnRecord(0, move)
+    assert game.players[0].hand.cards == [five]
+    assert list(game.turn_order) == [1, 0]
+
+
+def test_snapshot_restores_and_continues_game():
+    three, six, ten = (
+        make_cards(rank, 1)[0] for rank in (Rank.THREE, Rank.SIX, Rank.TEN)
+    )
+    four, seven, jack = (
+        make_cards(rank, 1)[0] for rank in (Rank.FOUR, Rank.SEVEN, Rank.JACK)
+    )
+    five, eight, queen = (
+        make_cards(rank, 1)[0] for rank in (Rank.FIVE, Rank.EIGHT, Rank.QUEEN)
+    )
+    players = [ScriptedPlayer(f"Player {player_id}") for player_id in range(3)]
+    game = President(
+        players,
+        initial_hands=[
+            [three, six, ten],
+            [four, seven, jack],
+            [five, eight, queen],
+        ],
+    )
+
+    game.play_move(Move((three,)))
+    game.play_move(None)
+    game.play_move(None)
+    game.play_move(Move((six,)))
+    game.play_move(None)
+    state = game.snapshot()
+
+    restored_players = [ScriptedPlayer(f"Player {player_id}") for player_id in range(3)]
+    restored = President.from_state(restored_players, state)
+
+    assert restored.snapshot() == state
+
+    move = Move((eight,))
+    assert restored.play_move(move) == game.play_move(move)
+    assert restored.snapshot() == game.snapshot()
+
+
 def test_player_view_turn_order_and_card_counts():
     three = make_cards(Rank.THREE, 1)[0]
     four = make_cards(Rank.FOUR, 1)[0]
