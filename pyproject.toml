@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "president-ai"
-version = "0.2.1"
+version = "0.3.0"
 description = "President card game engine and playing strategies"
 readme = "README.md"
 requires-python = ">=3.12"

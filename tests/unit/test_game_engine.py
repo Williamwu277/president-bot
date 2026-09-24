@@ -68,6 +68,20 @@ def test_get_player_view_and_play_move():
     assert list(game.turn_order) == [1, 0]
 
 
+def test_play_move_removes_the_exact_selected_suit():
+    three_diamonds, three_clubs = make_cards(Rank.THREE, 2)
+    five = make_cards(Rank.FIVE, 1)[0]
+    players = [ScriptedPlayer("Player 0"), ScriptedPlayer("Player 1")]
+    game = President(
+        players,
+        initial_hands=[[three_diamonds, three_clubs, five], make_cards(Rank.FOUR, 1)],
+    )
+
+    game.play_move(Move((three_clubs,)))
+
+    assert game.players[0].hand.cards == [three_diamonds, five]
+
+
 def test_snapshot_restores_and_continues_game():
     three, six, ten = (
         make_cards(rank, 1)[0] for rank in (Rank.THREE, Rank.SIX, Rank.TEN)

@@ -463,8 +463,10 @@ class President:
 
     def play_move(self, move: Move | None) -> TurnRecord:
         """Validate and apply a move for the current player."""
-        view = self.get_player_view()
-        player_id = view.player_id
+        if not self.turn_order:
+            raise ValueError("Game Is Over")
+
+        player_id = self.turn_order[0]
         player = self.players[player_id]
 
         # Move validation
@@ -472,7 +474,9 @@ class President:
             if self.current_move is None:
                 raise ValueError("Cannot Pass When Starting a Trick")
             self.passed_players.add(player_id)
-        elif move in view.possible_moves:
+        elif Counter(move.cards) <= Counter(player.hand.cards) and (
+            self.current_move is None or move.beats(self.current_move)
+        ):
             player.hand.remove_cards(move)
             self.current_move = move
             self.last_player_to_play = player_id
@@ -517,16 +521,27 @@ class President:
         move = player.controller.make_move(view)
         return self.play_move(move)
 
+    def is_finished(self) -> bool:
+        """Return whether no further player decisions are required."""
+        return len(self.turn_order) <= 1
+
+    def finalize(self) -> list[str]:
+        """Finalize and return standings after the game reaches its end."""
+        if not self.is_finished():
+            raise ValueError("Game Is Not Over")
+        if self.turn_order:
+            self.standings.append(self.turn_order.popleft())
+        return [self.players[player_id].controller.name for player_id in self.standings]
+
     def run(self) -> list[str]:
         """
         Play until the game ends and return standings.
         """
 
-        while len(self.turn_order) > 1:
+        while not self.is_finished():
             self.next_turn()
 
-        self.standings.append(self.turn_order.popleft())
-        return [self.players[player_id].controller.name for player_id in self.standings]
+        return self.finalize()
 
 
 def get_full_deck(shuffled: bool = False) -> list[Card]:
